@@ -1,15 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  Award,
-  CheckCircle2,
-  FileCode2,
-  GitBranch,
-  PlusCircle,
-  Search,
-  Send,
-  ShieldAlert,
-  Trophy,
-} from 'lucide-react';
+import { Check, Copy, Plus, Search } from 'lucide-react';
 import configuracaoLinks from '../dados/configuracaoLinks.json';
 import { PROMPT_AUDITOR_PADRAO } from '../dados/dadosIniciais';
 import type {
@@ -20,11 +10,17 @@ import type {
   RedeSocialChave,
 } from '../tipos';
 import {
+  copiarParaAreaDeTransferencia,
   detectarRedePorUrl,
-  formatarCompacto,
   formatarInteiro,
   nomeRedeSocial,
 } from '../utilitarios/formatadores';
+
+const PROMPT_CRIADOR_RESUMIDO = `Você é um Editor de Cortes Auditáveis do #DesafioProvaReal.
+Analise a transcrição ou vídeo abaixo com imparcialidade absoluta (sem puxar sardinha para direita nem esquerda):
+1. Extraia um trecho contínuo sem cortar frases pela metade (verifique 60s antes e 60s depois).
+2. Confronte cada afirmação com dados oficiais (IBGE, Câmara, Senado, STF, Banco Central, IPEA).
+3. Gere ao final a FICHA DE AUDITORIA OBRIGATÓRIA para eu colar no 1º comentário contendo: link original, minuto/segundo exato, data real da fala, modelo de IA usado, estimativa de tokens em R$ e este prompt completo.`;
 
 interface PropriedadesAbaArena {
   participantes: ParticipanteArena[];
@@ -42,15 +38,16 @@ export const AbaArena: React.FC<PropriedadesAbaArena> = ({
   aoSubmeterPostagem,
 }) => {
   const [termoBusca, setTermoBusca] = useState('');
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [promptCopiado, setPromptCopiado] = useState(false);
 
-  // Campos do Formulário Rápido de Submissão
   const [apelidoAutor, setApelidoAutor] = useState(perfil.apelido || '');
   const [urlPostagem, setUrlPostagem] = useState('');
   const [urlVideoOriginal, setUrlVideoOriginal] = useState('');
-  const [redeSocial, setRedeSocial] = useState<RedeSocialChave>('tiktok');
+  const [redeSocial, setRedeSocial] = useState<RedeSocialChave>('x');
   const [tituloCorte, setTituloCorte] = useState('');
   const [modeloUsado, setModeloUsado] = useState(modelos[0]?.nome || 'Claude Sonnet');
-  const [tokensGastos, setTokensGastos] = useState<string>('12500');
+  const [tokensGastos, setTokensGastos] = useState<string>('8500');
   const [promptUsado, setPromptUsado] = useState(PROMPT_AUDITOR_PADRAO);
   const [erroFormulario, setErroFormulario] = useState('');
   const [mensagemSucesso, setMensagemSucesso] = useState('');
@@ -59,21 +56,15 @@ export const AbaArena: React.FC<PropriedadesAbaArena> = ({
   const participantesOrdenados = useMemo(() => {
     const busca = termoBusca.trim().toLowerCase();
     return [...participantes]
-      .filter((p) => {
-        if (!busca) return true;
-        return (
-          p.apelido.toLowerCase().includes(busca) ||
-          p.codigoVerificacao.toLowerCase().includes(busca)
-        );
-      })
+      .filter((p) => !busca || p.apelido.toLowerCase().includes(busca))
       .sort((a, b) => b.pontuacaoGeral - a.pontuacaoGeral);
   }, [participantes, termoBusca]);
 
-  const aoAlterarUrlPostagem = (valor: string) => {
-    setUrlPostagem(valor);
-    const detectada = detectarRedePorUrl(valor);
-    if (detectada) {
-      setRedeSocial(detectada);
+  const copiarPromptCriador = async () => {
+    const ok = await copiarParaAreaDeTransferencia(PROMPT_CRIADOR_RESUMIDO);
+    if (ok) {
+      setPromptCopiado(true);
+      window.setTimeout(() => setPromptCopiado(false), 3000);
     }
   };
 
@@ -84,393 +75,285 @@ export const AbaArena: React.FC<PropriedadesAbaArena> = ({
 
     const autorEfetivo = (perfil.conectado ? perfil.apelido : apelidoAutor).trim();
     if (autorEfetivo.length < 3) {
-      setErroFormulario('Informe seu @apelido público ou conecte seu perfil antes de submeter.');
+      setErroFormulario('Informe seu @apelido público.');
       return;
     }
-
-    if (!urlPostagem.trim().startsWith('http')) {
-      setErroFormulario('Insira o link completo (https://...) da sua postagem publicada.');
+    if (!urlPostagem.trim().startsWith('http') || !urlVideoOriginal.trim().startsWith('http')) {
+      setErroFormulario('Informe os links completos (https://...) da postagem e do vídeo original.');
       return;
     }
-
-    if (!urlVideoOriginal.trim().startsWith('http')) {
-      setErroFormulario(
-        'O link do vídeo/fonte original completo é obrigatório para provar que não houve edição fora de contexto.'
-      );
-      return;
-    }
-
-    if (tituloCorte.trim().length < 8) {
-      setErroFormulario('Descreva brevemente o tema ou fala auditada no corte (mínimo 8 caracteres).');
-      return;
-    }
-
-    const numeroTokens = Number(tokensGastos);
-    if (!Number.isFinite(numeroTokens) || numeroTokens < 100) {
-      setErroFormulario('Informe uma quantidade real de tokens consumidos (mínimo 100 tokens).');
-      return;
-    }
-
-    if (promptUsado.trim().length < 25) {
-      setErroFormulario('Cole o prompt completo utilizado para permitir reprodução aberta da auditoria.');
+    if (tituloCorte.trim().length < 5) {
+      setErroFormulario('Informe um título curto para o corte.');
       return;
     }
 
     setEnviando(true);
     try {
-      const formatado = autorEfetivo.startsWith('@') ? autorEfetivo : `@${autorEfetivo}`;
       await aoSubmeterPostagem({
-        apelidoAutor: formatado,
-        redeSocial,
-        tituloCorte: tituloCorte.trim(),
+        apelidoAutor: autorEfetivo.startsWith('@') ? autorEfetivo : `@${autorEfetivo}`,
         urlPostagem: urlPostagem.trim(),
         urlVideoOriginal: urlVideoOriginal.trim(),
+        redeSocial,
+        tituloCorte: tituloCorte.trim(),
         modeloUsado,
-        tokensGastos: Math.round(numeroTokens),
+        tokensGastos: Math.max(100, Number(tokensGastos) || 5000),
         promptUsado: promptUsado.trim(),
       });
-
-      setTituloCorte('');
       setUrlPostagem('');
       setUrlVideoOriginal('');
-      setMensagemSucesso(
-        'Postagem protocolada com sucesso! Seus pontos entraram na Arena e o corte já está aberto para verificação no Tribunal Comunitário.'
-      );
+      setTituloCorte('');
+      setMensagemSucesso('Postagem enviada para o ranking e para auditoria pública!');
+      setMostrarFormulario(false);
     } finally {
       setEnviando(false);
     }
   };
 
   return (
-    <section aria-labelledby="titulo-arena" className="space-y-8">
-      {/* Cabeçalho e Regra Transparente de Pontuação */}
-      <div className="rounded-2xl border border-grafite-borda bg-grafite-cartao p-5 sm:p-6">
-        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 font-mono text-xs uppercase text-ciano-tecnico">
-              <Trophy className="h-4 w-4" />
-              <span>RANKING UNIFICADO MULTIRREDE</span>
-            </div>
-            <h2 id="titulo-arena" className="mt-1 text-xl font-bold text-gelo-principal sm:text-2xl">
-              Arena dos Participantes — Quem Prova Mais com Fatos?
-            </h2>
-            <p className="mt-1 text-sm text-gelo-secundario">
-               Some pontos publicando cortes auditados com{' '}
-              <strong className="font-mono text-ciano-tecnico">{configuracaoLinks.hashtagOficial}</strong> ou
-              caçando fraudes de contexto no Tribunal.
-            </p>
-          </div>
+    <section aria-labelledby="titulo-arena" className="space-y-6">
+      {/* Regras Claras em 3 Pontos + Botão de Copiar Prompt */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <h2 id="titulo-arena" className="text-xl font-bold text-slate-900 sm:text-2xl">
+          Como funciona o {configuracaoLinks.hashtagOficial}
+        </h2>
+        <ol className="mt-3 space-y-2 text-base text-slate-700">
+          <li>
+            <strong>1. Gere um corte honesto:</strong> Use sua IA favorita com o nosso Prompt Aberto
+            (sem cortar frase pela metade).
+          </li>
+          <li>
+            <strong>2. Prove no 1º comentário:</strong> Cole o link original, os segundos exatos, a
+            IA usada, os tokens gastos e o prompt completo.
+          </li>
+          <li>
+            <strong>3. Editou = Eliminado:</strong> Comentário editado ou prompt manipulado leva à
+            desclassificação imediata pela comunidade.
+          </li>
+        </ol>
 
-          <div className="relative w-full lg:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gelo-mutado" />
-            <input
-              type="text"
-              value={termoBusca}
-              onChange={(e) => setTermoBusca(e.target.value)}
-              placeholder="Buscar @participante ou PR-XXXX"
-              aria-label="Buscar participante na Arena"
-              className="w-full rounded-xl border border-grafite-borda bg-grafite-fundo py-2 pl-9 pr-3 text-sm text-gelo-principal placeholder:text-gelo-mutado focus:border-ciano-tecnico focus:outline-none"
-            />
-          </div>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              void copiarPromptCriador();
+            }}
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800 sm:text-base"
+          >
+            {promptCopiado ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            <span>
+              {promptCopiado
+                ? 'Prompt Copiado! Cole na sua IA'
+                : 'Copiar Prompt para Criar Corte'}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMostrarFormulario((v) => !v)}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 sm:text-base"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{mostrarFormulario ? 'Fechar Formulário' : 'Enviar Minha Postagem'}</span>
+          </button>
         </div>
 
-        {/* Fórmula Aberta */}
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-grafite-sutil pt-4 font-mono text-xs text-gelo-mutado">
-          <span className="font-bold text-gelo-secundario">Fórmula Aberta:</span>
-          <span className="rounded bg-grafite-fundo px-2 py-1 text-ciano-tecnico">
-            +75 pts por Corte Validado
-          </span>
-          <span className="rounded bg-grafite-fundo px-2 py-1 text-ambar-alerta">
-            +50 pts por Caça-Fraude Comprovada
-          </span>
-          <span className="rounded bg-grafite-fundo px-2 py-1 text-gelo-secundario">
-            + Bônus proporcional de alcance e debate auditado
-          </span>
-        </div>
+        {mensagemSucesso && (
+          <p className="mt-4 rounded-lg border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900">
+            ✓ {mensagemSucesso}
+          </p>
+        )}
       </div>
 
-      {/* Placar Geral */}
-      <div className="overflow-hidden rounded-2xl border border-grafite-borda bg-grafite-cartao">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-grafite-sutil bg-grafite-fundo/80 font-mono text-xs uppercase text-gelo-mutado">
-              <tr>
-                <th className="px-4 py-3.5">Pos.</th>
-                <th className="px-4 py-3.5">Participante & Redes</th>
-                <th className="px-4 py-3.5 text-right">Cortes Validados</th>
-                <th className="px-4 py-3.5 text-right">Visualizações Auditadas</th>
-                <th className="px-4 py-3.5 text-right">Comentários</th>
-                <th className="px-4 py-3.5 text-right">Caça-Fraudes</th>
-                <th className="px-5 py-3.5 text-right">Pontuação Geral</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-grafite-sutil">
-              {participantesOrdenados.map((p, idx) => {
-                const destaqueUsuario =
-                  perfil.conectado &&
-                  p.apelido.toLowerCase() === perfil.apelido.toLowerCase();
-
-                return (
-                  <tr
-                    key={p.id}
-                    className={`transition ${
-                      destaqueUsuario
-                        ? 'bg-ciano-suave/50'
-                        : 'hover:bg-grafite-elevado/60'
-                    }`}
-                  >
-                    <td className="px-4 py-4 font-mono font-bold">
-                      {idx === 0 ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-ciano-suave px-2 py-0.5 text-ciano-tecnico">
-                          <Award className="h-3.5 w-3.5" /> #1
-                        </span>
-                      ) : (
-                        <span className="text-gelo-mutado">#{idx + 1}</span>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-bold text-gelo-principal">{p.apelido}</span>
-                        <span className="rounded border border-grafite-borda bg-grafite-fundo px-1.5 py-0.5 font-mono text-[10px] text-ciano-tecnico">
-                          {p.codigoVerificacao}
-                        </span>
-                        {p.verificado && (
-                          <span
-                            title="Bio verificada pelo código PR"
-                            className="inline-flex items-center gap-0.5 text-[11px] font-medium text-ciano-tecnico"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Verificado
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                        {p.redesVinculadas.map((rede) => (
-                          <span
-                            key={rede}
-                            className="rounded bg-grafite-elevado px-2 py-0.5 font-mono text-[10px] text-gelo-secundario"
-                          >
-                            {nomeRedeSocial(rede)}
-                          </span>
-                        ))}
-                        {p.possuiGithub && (
-                          <span className="inline-flex items-center gap-1 rounded border border-ciano-borda bg-ciano-suave px-1.5 py-0.5 font-mono text-[10px] text-ciano-tecnico">
-                            <GitBranch className="h-2.5 w-2.5" />
-                            GitHub
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4 text-right font-mono font-semibold text-gelo-principal">
-                      {formatarInteiro(p.cortesValidados)}
-                    </td>
-                    <td className="px-4 py-4 text-right font-mono text-gelo-secundario">
-                      {formatarCompacto(p.visualizacoesAuditadas)}
-                    </td>
-                    <td className="px-4 py-4 text-right font-mono text-gelo-secundario">
-                      {formatarInteiro(p.comentariosGerados)}
-                    </td>
-                    <td className="px-4 py-4 text-right font-mono font-semibold text-ambar-alerta">
-                      {formatarInteiro(p.auditoriasCacaFraudes)}
-                    </td>
-                    <td className="px-5 py-4 text-right font-mono text-base font-extrabold text-ciano-tecnico">
-                      {formatarInteiro(p.pontuacaoGeral)} pts
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Formulário Rápido: Submeter Minha Postagem */}
-      <div className="rounded-2xl border border-ciano-borda bg-grafite-cartao p-5 shadow-ciano sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-grafite-sutil pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ciano-suave text-ciano-tecnico">
-              <PlusCircle className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-gelo-principal">
-                Submeter Minha Postagem da {configuracaoLinks.hashtagOficial}
-              </h3>
-              <p className="text-xs text-gelo-secundario">
-                Registre o corte que você publicou para pontuar no ranking e abrir auditoria pública.
-              </p>
-            </div>
+      {/* Formulário sob Demanda */}
+      {mostrarFormulario && (
+        <form
+          onSubmit={(e) => {
+            void lidarEnvioPostagem(e);
+          }}
+          className="space-y-4 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-6"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-lg font-bold text-slate-900">Cadastrar Postagem no Ranking</h3>
+            {!perfil.conectado && (
+              <button
+                type="button"
+                onClick={aoAbrirModalPerfil}
+                className="text-sm font-medium text-slate-700 underline hover:text-slate-950"
+              >
+                Vincular minhas redes primeiro
+              </button>
+            )}
           </div>
 
-          {!perfil.conectado && (
-            <button
-              type="button"
-              onClick={aoAbrirModalPerfil}
-              className="rounded-lg border border-ambar-borda bg-ambar-suave px-3 py-1.5 text-xs font-bold text-ambar-alerta transition hover:border-ambar-alerta"
-            >
-              Dica: Conecte seu Perfil p/ Vincular Código PR-XXXX
-            </button>
-          )}
-        </div>
-
-        <form onSubmit={lidarEnvioPostagem} className="mt-5 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gelo-secundario">
-                Seu @Apelido de Participante *
-              </label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Seu @apelido</label>
               <input
                 type="text"
                 value={perfil.conectado ? perfil.apelido : apelidoAutor}
                 disabled={perfil.conectado}
                 onChange={(e) => setApelidoAutor(e.target.value)}
-                placeholder="@seu.perfil"
-                className="w-full rounded-lg border border-grafite-borda bg-grafite-fundo px-3 py-2.5 text-sm text-gelo-principal placeholder:text-gelo-mutado focus:border-ciano-tecnico focus:outline-none disabled:opacity-75"
+                placeholder="@seu_usuario"
+                className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 focus:border-slate-900 focus:outline-none disabled:bg-slate-100"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gelo-secundario">
-                Rede Social da Postagem *
-              </label>
-              <select
-                value={redeSocial}
-                onChange={(e) => setRedeSocial(e.target.value as RedeSocialChave)}
-                className="w-full rounded-lg border border-grafite-borda bg-grafite-fundo px-3 py-2.5 text-sm text-gelo-principal focus:border-ciano-tecnico focus:outline-none"
-              >
-                <option value="tiktok">TikTok</option>
-                <option value="instagram">Instagram (Reels)</option>
-                <option value="youtube">YouTube (Shorts / Vídeo)</option>
-                <option value="x">X</option>
-                <option value="facebook">Facebook</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-gelo-secundario">
-                Resumo / Tema do Corte Auditado *
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Tema resumido do vídeo
               </label>
               <input
                 type="text"
                 value={tituloCorte}
                 onChange={(e) => setTituloCorte(e.target.value)}
-                placeholder="Ex: Checagem de dados sobre obras federais"
-                className="w-full rounded-lg border border-grafite-borda bg-grafite-fundo px-3 py-2.5 text-sm text-gelo-principal placeholder:text-gelo-mutado focus:border-ciano-tecnico focus:outline-none"
+                placeholder="Ex: Checagem de dados sobre saneamento"
+                className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 focus:border-slate-900 focus:outline-none"
               />
             </div>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gelo-secundario">
-                Link da Sua Postagem com {configuracaoLinks.hashtagOficial} *
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Link da sua postagem publicada
               </label>
               <input
                 type="url"
                 value={urlPostagem}
-                onChange={(e) => aoAlterarUrlPostagem(e.target.value)}
-                placeholder="https://www.tiktok.com/@seu_usuario/video/..."
-                className="w-full rounded-lg border border-grafite-borda bg-grafite-fundo px-3 py-2.5 text-sm text-gelo-principal placeholder:text-gelo-mutado focus:border-ciano-tecnico focus:outline-none"
+                onChange={(e) => {
+                  setUrlPostagem(e.target.value);
+                  const det = detectarRedePorUrl(e.target.value);
+                  if (det) setRedeSocial(det);
+                }}
+                placeholder="https://..."
+                className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 focus:border-slate-900 focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gelo-secundario">
-                Link do Vídeo/Fonte Original Completa (Sem Edição) *
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Link do vídeo completo original
               </label>
               <input
                 type="url"
                 value={urlVideoOriginal}
                 onChange={(e) => setUrlVideoOriginal(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=... (íntegra bruta)"
-                className="w-full rounded-lg border border-grafite-borda bg-grafite-fundo px-3 py-2.5 text-sm text-gelo-principal placeholder:text-gelo-mutado focus:border-ciano-tecnico focus:outline-none"
+                placeholder="https://youtube.com/..."
+                className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 focus:border-slate-900 focus:outline-none"
               />
             </div>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gelo-secundario">
-                Modelo de IA Usado na Auditoria *
-              </label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">IA utilizada</label>
               <select
                 value={modeloUsado}
                 onChange={(e) => setModeloUsado(e.target.value)}
-                className="w-full rounded-lg border border-grafite-borda bg-grafite-fundo px-3 py-2.5 text-sm text-gelo-principal focus:border-ciano-tecnico focus:outline-none"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 focus:border-slate-900 focus:outline-none"
               >
                 {modelos.map((m) => (
                   <option key={m.id} value={m.nome}>
-                    {m.nome} ({m.fornecedor})
+                    {m.nome}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-gelo-secundario">
-                Total de Tokens Consumidos (Entrada + Saída) *
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Tokens gastos (aproximado)
               </label>
               <input
                 type="number"
-                min={100}
-                step={50}
                 value={tokensGastos}
                 onChange={(e) => setTokensGastos(e.target.value)}
-                placeholder="Ex: 12500"
-                className="w-full rounded-lg border border-grafite-borda bg-grafite-fundo px-3 py-2.5 font-mono text-sm text-gelo-principal focus:border-ciano-tecnico focus:outline-none"
+                className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 focus:border-slate-900 focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
-              <label className="text-xs font-semibold text-gelo-secundario">
-                Prompt Exato Utilizado na Auditoria (Transparência Total) *
-              </label>
-              <button
-                type="button"
-                onClick={() => setPromptUsado(PROMPT_AUDITOR_PADRAO)}
-                className="inline-flex items-center gap-1 font-mono text-xs text-ciano-tecnico hover:underline"
-              >
-                <FileCode2 className="h-3.5 w-3.5" />
-                <span>Restaurar Prompt Oficial Padrão</span>
-              </button>
-            </div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">
+              Prompt completo usado
+            </label>
             <textarea
-              rows={4}
+              rows={3}
               value={promptUsado}
               onChange={(e) => setPromptUsado(e.target.value)}
-              className="w-full rounded-lg border border-grafite-borda bg-grafite-fundo p-3 font-mono text-xs text-gelo-principal focus:border-ciano-tecnico focus:outline-none"
+              className="w-full rounded-lg border border-slate-300 p-3 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
             />
           </div>
 
           {erroFormulario && (
-            <div className="flex items-center gap-2 rounded-lg border border-coral-borda bg-coral-suave px-4 py-2.5 text-xs font-semibold text-coral-reprovado">
-              <ShieldAlert className="h-4 w-4 shrink-0" />
-              <span>{erroFormulario}</span>
-            </div>
+            <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-900">
+              {erroFormulario}
+            </p>
           )}
 
-          {mensagemSucesso && (
-            <div className="flex items-center gap-2 rounded-lg border border-ciano-borda bg-ciano-suave px-4 py-2.5 text-xs font-semibold text-ciano-tecnico">
-              <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span>{mensagemSucesso}</span>
-            </div>
-          )}
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={enviando}
-              className="inline-flex items-center gap-2 rounded-xl bg-ciano-tecnico px-6 py-3 text-sm font-bold text-grafite-fundo shadow-ciano transition hover:opacity-90 disabled:opacity-50"
-            >
-              <Send className="h-4 w-4" />
-              <span>{enviando ? 'Protocolando Auditoria...' : 'Protocolar Postagem na Arena'}</span>
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={enviando}
+            className="w-full rounded-xl bg-slate-900 px-5 py-3.5 text-base font-bold text-white transition hover:bg-slate-800"
+          >
+            {enviando ? 'Enviando...' : 'Confirmar e Entrar no Ranking'}
+          </button>
         </form>
+      )}
+
+      {/* Tabela Limpa do Ranking */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-lg font-bold text-slate-900">Ranking Geral dos Participantes</h3>
+          <div className="relative w-full sm:w-64">
+            <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Buscar participante..."
+              className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm text-slate-900 focus:border-slate-900 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-left text-sm sm:text-base">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase text-slate-500">
+                <th className="py-3 pr-3">#</th>
+                <th className="py-3 pr-3">Participante</th>
+                <th className="py-3 pr-3">Redes</th>
+                <th className="py-3 pr-3 text-right">Cortes</th>
+                <th className="py-3 pr-3 text-right">Auditorias</th>
+                <th className="py-3 text-right">Pontos</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {participantesOrdenados.map((p, idx) => (
+                <tr key={p.id} className="hover:bg-slate-50">
+                  <td className="py-3.5 pr-3 font-bold text-slate-500">{idx + 1}º</td>
+                  <td className="py-3.5 pr-3">
+                    <span className="font-semibold text-slate-900">{p.apelido}</span>
+                    {p.verificado && (
+                      <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700">
+                        Verificado
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3.5 pr-3 text-xs text-slate-600">
+                    {p.redesVinculadas.map((r) => nomeRedeSocial(r)).join(', ')}
+                  </td>
+                  <td className="py-3.5 pr-3 text-right text-slate-700">
+                    {formatarInteiro(p.cortesValidados)}
+                  </td>
+                  <td className="py-3.5 pr-3 text-right text-slate-700">
+                    {formatarInteiro(p.auditoriasCacaFraudes)}
+                  </td>
+                  <td className="py-3.5 text-right font-bold text-slate-900">
+                    {formatarInteiro(p.pontuacaoGeral)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );
