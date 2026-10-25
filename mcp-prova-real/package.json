@@ -1,0 +1,21 @@
+{
+  "name": "mcp-prova-real",
+  "version": "1.0.0",
+  "description": "Servidor MCP oficial em português do #DesafioProvaReal para cortes auditáveis, verificação de janela -60s/+60s, dados abertos da Câmara/Senado e cálculo de custo de IA em reais.",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "mcp-prova-real": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test testes/*.test.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.24.1"
+  }
+}

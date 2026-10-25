@@ -1,0 +1,25 @@
+# Área privada exclusiva do operador (NUNCA versionar)
+privado-operador/
+.env
+.env.*
+!.env.exemplo
+
+# Dependências e builds
+node_modules/
+**/node_modules/
+web/dist/
+mcp-prova-real/dist/
+servidor/dados/*.db
+servidor/dados/*.db-shm
+servidor/dados/*.db-wal
+
+# Temporários e mídia bruta
+*.mp4
+*.mkv
+*.wav
+*.mp3
+!ativos/*.mp4
+__pycache__/
+*.pyc
+.DS_Store
+*.log

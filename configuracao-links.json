@@ -1,0 +1,40 @@
+{
+  "nomeDesafio": "Desafio Prova Real",
+  "hashtagOficial": "#DesafioProvaReal",
+  "siteOficial": "https://desafioprovareal.pages.dev",
+  "repositorioGithub": "https://github.com/desafioprovareal/desafio-prova-real",
+  "apoioLivePix": "https://livepix.gg/desafioprovareal",
+  "carteiraCripto": "bc1q_DEFINIR_CARTEIRA_PROVA_REAL",
+  "redesSociais": {
+    "tiktok": {
+      "nome": "TikTok",
+      "arroba": "@desafioprovareal",
+      "urlPerfil": "https://www.tiktok.com/@desafioprovareal",
+      "urlPrimeiroPost": "https://www.tiktok.com/@desafioprovareal/video/DEFINIR_ID"
+    },
+    "instagram": {
+      "nome": "Instagram",
+      "arroba": "@desafioprovareal",
+      "urlPerfil": "https://www.instagram.com/desafioprovareal",
+      "urlPrimeiroPost": "https://www.instagram.com/reel/DEFINIR_ID"
+    },
+    "youtube": {
+      "nome": "YouTube",
+      "arroba": "@desafioprovareal",
+      "urlPerfil": "https://www.youtube.com/@desafioprovareal",
+      "urlPrimeiroPost": "https://www.youtube.com/shorts/DEFINIR_ID"
+    },
+    "x": {
+      "nome": "X",
+      "arroba": "@desafioprovareal",
+      "urlPerfil": "https://x.com/desafioprovareal",
+      "urlPrimeiroPost": "https://x.com/desafioprovareal/status/DEFINIR_ID"
+    },
+    "facebook": {
+      "nome": "Facebook",
+      "arroba": "@desafioprovareal",
+      "urlPerfil": "https://www.facebook.com/desafioprovareal",
+      "urlPrimeiroPost": "https://www.facebook.com/desafioprovareal/posts/DEFINIR_ID"
+    }
+  }
+}

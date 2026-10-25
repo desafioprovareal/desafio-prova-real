@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Verificador automático de segurança operacional antes de qualquer commit
+USUARIO_SISTEMA="$(whoami)"
+CAMINHO_HOME="$HOME"
+
+ARQUIVOS=$(git diff --cached --name-only --diff-filter=ACM)
+if [ -z "$ARQUIVOS" ]; then
+  exit 0
+fi
+
+ERRO=0
+for ARQ in $ARQUIVOS; do
+  if [ ! -f "$ARQ" ]; then
+    continue
+  fi
+
+  # Em qualquer arquivo (inclusive neste hook), bloqueia o nome/pasta real do sistema operacional
+  if ! file "$ARQ" | grep -qiE "image|bitmap|png|jpeg"; then
+    if grep -InE "(${USUARIO_SISTEMA}|${CAMINHO_HOME})" "$ARQ" >/dev/null 2>&1; then
+      echo "❌ BLOQUEADO: Usuário ou pasta local do sistema detectado em: $ARQ"
+      ERRO=1
+      continue
+    fi
+  fi
+
+  if [ "$ARQ" = ".githooks/pre-commit" ]; then
+    continue
+  fi
+
+  if file "$ARQ" | grep -qiE "image|bitmap|png|jpeg"; then
+    if ! python3 -c "
+import sys
+data = open(sys.argv[1], 'rb').read()
+for tag in [b'Exif', b'GPSInfo', b'WhatsApp']:
+    if tag in data:
+        sys.exit(1)
+" "$ARQ"; then
+      echo "❌ BLOQUEADO: Metadados EXIF/sensíveis encontrados na imagem: $ARQ"
+      ERRO=1
+    fi
+    continue
+  fi
+
+  PADRAO_SENSIVEL="WhatsApp"" Video|100\.92\.|100\.122\.|BEGIN [A-Z ]*PRIVATE KEY"
+  if grep -InE "$PADRAO_SENSIVEL" "$ARQ" >/dev/null 2>&1; then
+    echo "❌ BLOQUEADO: Padrão privado ou chave detectada em: $ARQ"
+    ERRO=1
+  fi
+done
+
+if [ "$ERRO" -ne 0 ]; then
+  echo "Commit abortado pela trava de proteção de identidade."
+  exit 1
+fi
+
+exit 0

@@ -1,0 +1,42 @@
+# Pilha blindada para VPS Hostinger (1 vCPU / 4 GB RAM)
+# Não abre portas 80/443 no UFW: todo o tráfego passa filtrado pelo Cloudflare Tunnel.
+
+services:
+  api-prova-real:
+    build: .
+    container_name: api-prova-real
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 0.50
+    environment:
+      - NODE_ENV=production
+      - PORTA_SERVIDOR=8787
+      - ENDERECO_ESCUTA=0.0.0.0
+      - CONFIAR_PROXY_CLOUDFLARE=true
+      - ORIGENS_CORS=${ORIGENS_CORS:-https://desafioprovareal.pages.dev}
+      - SEGREDO_HMAC_CENSO=${SEGREDO_HMAC_CENSO}
+      - TURNSTILE_SECRET=${TURNSTILE_SECRET:-}
+      - GITHUB_REPOSITORIO=${GITHUB_REPOSITORIO:-desafioprovareal/desafio-prova-real}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - INTERVALO_BOT_MINUTOS=${INTERVALO_BOT_MINUTOS:-15}
+      - VCPUS_REFERENCIA_VPS=1
+    volumes:
+      - ./dados:/app/dados
+    networks:
+      - rede-interna-prova-real
+
+  tunel-cloudflare:
+    image: cloudflare/cloudflared:latest
+    container_name: tunel-prova-real
+    restart: unless-stopped
+    mem_limit: 128m
+    cpus: 0.15
+    depends_on:
+      - api-prova-real
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - rede-interna-prova-real
+
+networks:
+  rede-interna-prova-real:
+    driver: bridge

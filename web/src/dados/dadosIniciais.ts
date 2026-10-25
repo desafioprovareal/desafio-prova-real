@@ -1,0 +1,409 @@
+import type {
+  FaixaRenda,
+  ItemTribunalAuditoria,
+  ModeloIaPlacar,
+  NivelUsoIa,
+  OcupacaoCenso,
+  ParticipanteArena,
+  PrioridadeUrgente,
+  RegiaoBrasil,
+  RespostaCensoAnonima,
+} from '../tipos';
+
+export const PROMPT_AUDITOR_PADRAO = `Você é um Auditor Cívico Independente, Apartidário e de Código Aberto do protocolo #DesafioProvaReal.
+Sua missão é auditar rigorosamente o conteúdo abaixo sem defender nem atacar nenhum grupo político, avaliando exclusivamente fatos verificáveis, lógica e integridade de contexto.
+
+REGRAS OBRIGATÓRIAS DE AUDITORIA:
+1. Separe estritamente FATO VERIFICÁVEL de OPINIÃO, RETÓRICA ou PROMESSA VAGA.
+2. Aponte se há CORTE FORA DE CONTEXTO, omissão de período/fonte oficial ou comparação distorcida.
+3. Verifique números citados contra bases públicas oficiais (IBGE, Tesouro Nacional, Portal da Transparência, Banco Central, DataSUS, INEP). Se não houver fonte primária verificável, declare explicitamente "Sem lastro documental verificável".
+4. Atribua um ÍNDICE DE FIDELIDADE FACTUAL de 0 a 100%.
+5. Entregue um RESUMO DIRETO EM 3 LINHAS em português claro para qualquer cidadão entender.
+6. Liste quais dados adicionais ou trechos do vídeo bruto seriam necessários para fechar 100% da prova real.`;
+
+export function montarPromptAuditorUniversal(conteudo: string, alegacaoRecebida?: string): string {
+  const blocoAlegacao =
+    alegacaoRecebida && alegacaoRecebida.trim().length > 0
+      ? `\nALEGAÇÃO DE QUEM COMPARTILHOU:\n"${alegacaoRecebida.trim()}"\n`
+      : '';
+
+  return `${PROMPT_AUDITOR_PADRAO}
+${blocoAlegacao}
+CONTEÚDO / LINK / MENSAGEM PARA AUDITAR AGORA:
+"""
+${conteudo.trim()}
+"""
+
+Responda em português do Brasil estruturando nos tópicos:
+- [VEREDITO RÁPIDO EM LINGUAGEM SIMPLES]
+- [ÍNDICE DE FIDELIDADE: 0 A 100%]
+- [O QUE É FATO COMPROVADO]
+- [O QUE ESTÁ FORA DE CONTEXTO, EXAGERADO OU SEM FONTE]
+- [COMO CONFERIR NAS FONTES PÚBLICAS OFICIAIS]`;
+}
+
+export const MODELOS_INICIAIS: ModeloIaPlacar[] = [
+  {
+    id: 'claude-sonnet',
+    nome: 'Claude Sonnet',
+    fornecedor: 'Anthropic',
+    destaque: 'Líder em Fidelidade Contextual',
+    pesosAbertos: false,
+    custoEntradaPorMilhaoUsd: 3.0,
+    custoSaidaPorMilhaoUsd: 15.0,
+    porRede: {
+      tiktok: { cortesAuditados: 412, taxaFidelidade: 97.2, tokensTotais: 6180000, custoTotalReais: 274.8 },
+      instagram: { cortesAuditados: 368, taxaFidelidade: 96.8, tokensTotais: 5520000, custoTotalReais: 245.4 },
+      youtube: { cortesAuditados: 295, taxaFidelidade: 97.6, tokensTotais: 5310000, custoTotalReais: 236.1 },
+      x: { cortesAuditados: 264, taxaFidelidade: 96.1, tokensTotais: 3696000, custoTotalReais: 164.3 },
+      facebook: { cortesAuditados: 141, taxaFidelidade: 95.9, tokensTotais: 2115000, custoTotalReais: 94.0 },
+    },
+  },
+  {
+    id: 'gemini-pro',
+    nome: 'Gemini Pro',
+    fornecedor: 'Google',
+    destaque: 'Maior Janela p/ Vídeos Longos',
+    pesosAbertos: false,
+    custoEntradaPorMilhaoUsd: 1.25,
+    custoSaidaPorMilhaoUsd: 5.0,
+    porRede: {
+      tiktok: { cortesAuditados: 486, taxaFidelidade: 95.4, tokensTotais: 8262000, custoTotalReais: 143.7 },
+      instagram: { cortesAuditados: 410, taxaFidelidade: 94.9, tokensTotais: 6970000, custoTotalReais: 121.3 },
+      youtube: { cortesAuditados: 520, taxaFidelidade: 96.3, tokensTotais: 11440000, custoTotalReais: 199.1 },
+      x: { cortesAuditados: 238, taxaFidelidade: 94.5, tokensTotais: 3570000, custoTotalReais: 62.1 },
+      facebook: { cortesAuditados: 162, taxaFidelidade: 94.2, tokensTotais: 2592000, custoTotalReais: 45.1 },
+    },
+  },
+  {
+    id: 'gpt-4o',
+    nome: 'GPT-4o',
+    fornecedor: 'OpenAI',
+    destaque: 'Alta Precisão em Tabelas e Orçamento',
+    pesosAbertos: false,
+    custoEntradaPorMilhaoUsd: 2.5,
+    custoSaidaPorMilhaoUsd: 10.0,
+    porRede: {
+      tiktok: { cortesAuditados: 394, taxaFidelidade: 95.1, tokensTotais: 5910000, custoTotalReais: 188.5 },
+      instagram: { cortesAuditados: 352, taxaFidelidade: 94.7, tokensTotais: 5280000, custoTotalReais: 168.4 },
+      youtube: { cortesAuditados: 278, taxaFidelidade: 95.6, tokensTotais: 4726000, custoTotalReais: 150.8 },
+      x: { cortesAuditados: 312, taxaFidelidade: 94.8, tokensTotais: 4368000, custoTotalReais: 139.3 },
+      facebook: { cortesAuditados: 128, taxaFidelidade: 93.9, tokensTotais: 1920000, custoTotalReais: 61.2 },
+    },
+  },
+  {
+    id: 'deepseek',
+    nome: 'DeepSeek',
+    fornecedor: 'DeepSeek R1/V3',
+    destaque: 'Menor Custo por Auditoria',
+    pesosAbertos: true,
+    custoEntradaPorMilhaoUsd: 0.27,
+    custoSaidaPorMilhaoUsd: 1.1,
+    porRede: {
+      tiktok: { cortesAuditados: 530, taxaFidelidade: 93.8, tokensTotais: 8480000, custoTotalReais: 31.4 },
+      instagram: { cortesAuditados: 445, taxaFidelidade: 93.2, tokensTotais: 7120000, custoTotalReais: 26.3 },
+      youtube: { cortesAuditados: 318, taxaFidelidade: 94.1, tokensTotais: 5724000, custoTotalReais: 21.2 },
+      x: { cortesAuditados: 389, taxaFidelidade: 93.5, tokensTotais: 5835000, custoTotalReais: 21.6 },
+      facebook: { cortesAuditados: 174, taxaFidelidade: 92.7, tokensTotais: 2784000, custoTotalReais: 10.3 },
+    },
+  },
+  {
+    id: 'llama-aberto',
+    nome: 'Llama Aberto',
+    fornecedor: 'Meta / Pesos Abertos (70B)',
+    destaque: 'Auditável Localmente Sem Nuvem',
+    pesosAbertos: true,
+    custoEntradaPorMilhaoUsd: 0.59,
+    custoSaidaPorMilhaoUsd: 0.79,
+    porRede: {
+      tiktok: { cortesAuditados: 288, taxaFidelidade: 91.6, tokensTotais: 4608000, custoTotalReais: 19.8 },
+      instagram: { cortesAuditados: 244, taxaFidelidade: 91.2, tokensTotais: 3904000, custoTotalReais: 16.8 },
+      youtube: { cortesAuditados: 219, taxaFidelidade: 92.4, tokensTotais: 3942000, custoTotalReais: 16.9 },
+      x: { cortesAuditados: 205, taxaFidelidade: 91.0, tokensTotais: 3075000, custoTotalReais: 13.2 },
+      facebook: { cortesAuditados: 109, taxaFidelidade: 90.4, tokensTotais: 1744000, custoTotalReais: 7.5 },
+    },
+  },
+];
+
+export const PARTICIPANTES_INICIAIS: ParticipanteArena[] = [
+  {
+    id: 'part-01',
+    apelido: '@marina.audita',
+    codigoVerificacao: 'PR-8K2M',
+    verificado: true,
+    redesVinculadas: ['tiktok', 'instagram', 'youtube', 'x'],
+    possuiGithub: true,
+    cortesValidados: 48,
+    visualizacoesAuditadas: 642800,
+    comentariosGerados: 9140,
+    auditoriasCacaFraudes: 19,
+    pontuacaoGeral: 4890,
+  },
+  {
+    id: 'part-02',
+    apelido: '@rafael.dadosabertos',
+    codigoVerificacao: 'PR-4N9P',
+    verificado: true,
+    redesVinculadas: ['youtube', 'x', 'instagram'],
+    possuiGithub: true,
+    cortesValidados: 41,
+    visualizacoesAuditadas: 518400,
+    comentariosGerados: 7430,
+    auditoriasCacaFraudes: 22,
+    pontuacaoGeral: 4510,
+  },
+  {
+    id: 'part-03',
+    apelido: '@camila.semfiltro',
+    codigoVerificacao: 'PR-7T3V',
+    verificado: true,
+    redesVinculadas: ['tiktok', 'instagram', 'facebook'],
+    possuiGithub: false,
+    cortesValidados: 39,
+    visualizacoesAuditadas: 489100,
+    comentariosGerados: 6820,
+    auditoriasCacaFraudes: 14,
+    pontuacaoGeral: 3985,
+  },
+  {
+    id: 'part-04',
+    apelido: '@lucas.verificador',
+    codigoVerificacao: 'PR-2H6R',
+    verificado: true,
+    redesVinculadas: ['tiktok', 'youtube', 'x'],
+    possuiGithub: true,
+    cortesValidados: 33,
+    visualizacoesAuditadas: 374500,
+    comentariosGerados: 5190,
+    auditoriasCacaFraudes: 17,
+    pontuacaoGeral: 3540,
+  },
+  {
+    id: 'part-05',
+    apelido: '@bianca.transparencia',
+    codigoVerificacao: 'PR-9C5L',
+    verificado: true,
+    redesVinculadas: ['instagram', 'x', 'facebook'],
+    possuiGithub: true,
+    cortesValidados: 29,
+    visualizacoesAuditadas: 312900,
+    comentariosGerados: 4380,
+    auditoriasCacaFraudes: 15,
+    pontuacaoGeral: 3125,
+  },
+  {
+    id: 'part-06',
+    apelido: '@thiago.lupacivica',
+    codigoVerificacao: 'PR-5W8D',
+    verificado: false,
+    redesVinculadas: ['tiktok', 'youtube'],
+    possuiGithub: false,
+    cortesValidados: 21,
+    visualizacoesAuditadas: 198400,
+    comentariosGerados: 2610,
+    auditoriasCacaFraudes: 8,
+    pontuacaoGeral: 2190,
+  },
+];
+
+export const ITENS_TRIBUNAL_INICIAIS: ItemTribunalAuditoria[] = [
+  {
+    id: 'trib-01',
+    protocolo: 'AUD-2026-0841',
+    autorApelido: '@marina.audita',
+    redeSocial: 'tiktok',
+    tituloCorte: 'Checagem de execução orçamentária em saneamento básico (2020–2025)',
+    urlPostagem: 'https://www.tiktok.com/@desafioprovareal',
+    urlVideoOriginal: 'https://www.youtube.com/@desafioprovareal',
+    modeloDeclarado: 'Claude Sonnet',
+    tokensDeclarados: 14820,
+    promptDeclarado: PROMPT_AUDITOR_PADRAO,
+    criadoEm: 'Há 42 min',
+    status: 'em_auditoria',
+    pesoAprovacao: 28.5,
+    pesoReprovacao: 2.0,
+    totalVotos: 14,
+  },
+  {
+    id: 'trib-02',
+    protocolo: 'AUD-2026-0839',
+    autorApelido: '@canal.corte.urgente',
+    redeSocial: 'instagram',
+    tituloCorte: 'Trecho de entrevista sobre arrecadação e isenção de cesta básica',
+    urlPostagem: 'https://www.instagram.com/desafioprovareal',
+    urlVideoOriginal: 'https://www.youtube.com/@desafioprovareal',
+    modeloDeclarado: 'GPT-4o',
+    tokensDeclarados: 9410,
+    promptDeclarado:
+      'Analise a fala do entrevistado focando apenas nas contradições fiscais do último trimestre.',
+    criadoEm: 'Há 1h 15min',
+    status: 'em_auditoria',
+    pesoAprovacao: 9.5,
+    pesoReprovacao: 18.0,
+    totalVotos: 11,
+    categoriaFalha: 'Prompt manipulado ou enviesado',
+    motivoFalha:
+      'Alerta comunitário: o prompt enviado pede para focar apenas em um recorte negativo, omitindo os 40 segundos seguintes do vídeo original.',
+  },
+  {
+    id: 'trib-03',
+    protocolo: 'AUD-2026-0835',
+    autorApelido: '@rafael.dadosabertos',
+    redeSocial: 'youtube',
+    tituloCorte: 'Comparativo histórico da dívida bruta vs. investimento público (Tesouro)',
+    urlPostagem: 'https://www.youtube.com/@desafioprovareal',
+    urlVideoOriginal: 'https://www.youtube.com/@desafioprovareal',
+    modeloDeclarado: 'Gemini Pro',
+    tokensDeclarados: 22650,
+    promptDeclarado: PROMPT_AUDITOR_PADRAO,
+    criadoEm: 'Há 3h',
+    status: 'em_auditoria',
+    pesoAprovacao: 34.0,
+    pesoReprovacao: 1.5,
+    totalVotos: 16,
+  },
+  {
+    id: 'trib-desc-01',
+    protocolo: 'AUD-2026-0812',
+    autorApelido: '@cortes.relampago.br',
+    redeSocial: 'tiktok',
+    tituloCorte: 'Alegação de corte de verba escolar sem mostrar emenda complementar',
+    urlPostagem: 'https://www.tiktok.com/@desafioprovareal',
+    urlVideoOriginal: 'https://www.youtube.com/@desafioprovareal',
+    modeloDeclarado: 'GPT-4o',
+    tokensDeclarados: 6200,
+    promptDeclarado: 'Confirme que houve redução nominal ignorando transferência fundo a fundo.',
+    criadoEm: 'Ontem',
+    status: 'desclassificado',
+    pesoAprovacao: 3.0,
+    pesoReprovacao: 46.5,
+    totalVotos: 23,
+    categoriaFalha: 'Comentário editado após auditoria',
+    motivoFalha:
+      'Editou o comentário da auditoria 19 minutos após publicar para apagar o parágrafo onde a IA alertava que a verba foi transferida via FUNDEB.',
+    detalheProvaTecnica:
+      'Hash SHA-256 original (9f3a...c812) divergiu da captura reauditada (41b0...e904). Trecho de 284 caracteres suprimido.',
+  },
+  {
+    id: 'trib-desc-02',
+    protocolo: 'AUD-2026-0798',
+    autorApelido: '@radar.polarizado',
+    redeSocial: 'x',
+    tituloCorte: 'Frase interrompida aos 02m14s antes da conjunção adversativa "porém"',
+    urlPostagem: 'https://x.com/desafioprovareal',
+    urlVideoOriginal: 'https://www.youtube.com/@desafioprovareal',
+    modeloDeclarado: 'DeepSeek',
+    tokensDeclarados: 4100,
+    promptDeclarado: 'Resuma o trecho transcrito sem exigir link do vídeo integral.',
+    criadoEm: 'Há 2 dias',
+    status: 'desclassificado',
+    pesoAprovacao: 1.5,
+    pesoReprovacao: 52.0,
+    totalVotos: 27,
+    categoriaFalha: 'Corte fora de contexto sem fonte bruta',
+    motivoFalha:
+      'Corte cirúrgico interrompendo a frase no meio para inverter a conclusão do orador e recusa de fornecer link da gravação integral.',
+    detalheProvaTecnica:
+      'Comparação de minutagem na íntegra pública (02:14 a 02:39) comprovou inversão semântica deliberada.',
+  },
+  {
+    id: 'trib-desc-03',
+    protocolo: 'AUD-2026-0774',
+    autorApelido: '@fator.viral.clips',
+    redeSocial: 'instagram',
+    tituloCorte: 'Relatório de auditoria falsificado com contagem irreal de tokens',
+    urlPostagem: 'https://www.instagram.com/desafioprovareal',
+    urlVideoOriginal: 'https://www.youtube.com/@desafioprovareal',
+    modeloDeclarado: 'Claude Sonnet',
+    tokensDeclarados: 420,
+    promptDeclarado: 'Texto escrito manualmente fingindo saída automática de modelo.',
+    criadoEm: 'Há 3 dias',
+    status: 'desclassificado',
+    pesoAprovacao: 0.5,
+    pesoReprovacao: 39.0,
+    totalVotos: 19,
+    categoriaFalha: 'Dados de tokens/modelo adulterados',
+    motivoFalha:
+      'Declarou auditoria completa de vídeo de 18 minutos usando apenas 420 tokens e texto incompatível com a saída verificável do modelo.',
+    detalheProvaTecnica:
+      'Reexecução determinística no protocolo aberto exigiu 16.340 tokens e produziu conclusão oposta à publicada.',
+  },
+];
+
+function construirRespostasIniciaisCenso(): RespostaCensoAnonima[] {
+  const distribuicaoRegional: Array<{ regiao: RegiaoBrasil; quantidade: number }> = [
+    { regiao: 'Sudeste', quantidade: 64 },
+    { regiao: 'Nordeste', quantidade: 46 },
+    { regiao: 'Sul', quantidade: 32 },
+    { regiao: 'Centro-Oeste', quantidade: 23 },
+    // Norte inicia com 9 respostas para demonstrar de forma transparente a trava matemática LGPD (n >= 10)
+    { regiao: 'Norte', quantidade: 9 },
+  ];
+
+  const faixas: FaixaRenda[] = [
+    'Até 2 salários mínimos',
+    'De 2 a 5 salários mínimos',
+    'De 5 a 10 salários mínimos',
+    'De 2 a 5 salários mínimos',
+    'Até 2 salários mínimos',
+    'De 10 a 20 salários mínimos',
+    'Prefiro não informar',
+    'Acima de 20 salários mínimos',
+  ];
+
+  const ocupacoes: OcupacaoCenso[] = [
+    'Trabalhador CLT / Setor Privado',
+    'Autônomo / MEI / Informal',
+    'Estudante / Pesquisador',
+    'Servidor Público',
+    'Empreendedor / Empresário',
+    'Trabalhador CLT / Setor Privado',
+    'Em busca de recolocação',
+    'Aposentado / Pensionista',
+  ];
+
+  const combinacoesPrioridades: PrioridadeUrgente[][] = [
+    ['Custo de Vida', 'Saúde', 'Segurança Pública'],
+    ['Segurança Pública', 'Combate à Corrupção', 'Impostos'],
+    ['Custo de Vida', 'Emprego', 'Educação'],
+    ['Saúde', 'Educação', 'Custo de Vida'],
+    ['Impostos', 'Custo de Vida', 'Combate à Corrupção'],
+    ['Segurança Pública', 'Saúde', 'Emprego'],
+    ['Educação', 'Emprego', 'Combate à Corrupção'],
+  ];
+
+  const niveisIa: NivelUsoIa[] = [
+    'Uso ocasionalmente para tirar dúvidas',
+    'Uso toda semana no estudo ou trabalho',
+    'Nunca usei / Estou começando agora',
+    'Uso diariamente e audito prompts/código',
+    'Uso toda semana no estudo ou trabalho',
+  ];
+
+  const lista: RespostaCensoAnonima[] = [];
+  let indiceGlobal = 1;
+
+  for (const bloco of distribuicaoRegional) {
+    for (let i = 0; i < bloco.quantidade; i += 1) {
+      const sementeHex = (indiceGlobal * 2654435761 >>> 0).toString(16).padStart(8, '0');
+      const protocoloSimulado = `${sementeHex}e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b`.slice(
+        0,
+        64
+      );
+      lista.push({
+        protocoloHash: protocoloSimulado,
+        regiao: bloco.regiao,
+        faixaRenda: faixas[(indiceGlobal + i) % faixas.length],
+        ocupacao: ocupacoes[(indiceGlobal * 3 + i) % ocupacoes.length],
+        prioridades: combinacoesPrioridades[(indiceGlobal + i * 2) % combinacoesPrioridades.length],
+        nivelUsoIa: niveisIa[(indiceGlobal + i) % niveisIa.length],
+        registradoEm: '2026-10-24T12:00:00Z',
+      });
+      indiceGlobal += 1;
+    }
+  }
+
+  return lista;
+}
+
+export const RESPOSTAS_CENSO_INICIAIS: RespostaCensoAnonima[] = construirRespostasIniciaisCenso();
