@@ -3,9 +3,11 @@ import {
   ArrowRight,
   Check,
   Copy,
+  Download,
   ExternalLink,
   FileText,
   HelpCircle,
+  PlayCircle,
   Share2,
 } from 'lucide-react';
 import {
@@ -387,38 +389,99 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
         </details>
       </div>
 
-      {/* Barra Simples de 1 Clique para Compartilhar nas Redes Sociais */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="inline-flex items-center gap-2 text-base font-bold text-slate-900 sm:text-lg">
-              <Share2 className="h-5 w-5 text-slate-700" />
-              <span>Compartilhe o #DesafioProvaReal nas Redes e Grupos</span>
-            </h2>
-            <p className="mt-0.5 text-sm text-slate-600">
-              Envie em 1 toque para família, amigos e chats de lives políticas.
-            </p>
+      {/* Barra Simples Estilo Linktree + Vídeos Diretos p/ Baixar no WhatsApp (Sem Depender de Redes) */}
+      <div id="videos" className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div>
+          <h2 className="inline-flex items-center gap-2 text-lg font-bold text-slate-900 sm:text-xl">
+            <PlayCircle className="h-5 w-5 text-slate-900" />
+            <span>Vídeos Curtos e Links Rápidos (Baixe e Mande nos Grupos)</span>
+          </h2>
+          <p className="mt-1 text-sm text-slate-600 sm:text-base">
+            Assista aqui mesmo sem precisar de cadastro. Toque em <strong>Baixar Vídeo</strong> para
+            postar no seu Status do WhatsApp, grupos da família, Instagram Stories ou Facebook!
+          </p>
+        </div>
+
+        {/* 2 Vídeos Principais Direto na Tela (Leves: ~340 KB cada) */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                1. Raio-X: Digite Só o Nome do Político (18s)
+              </p>
+              <p className="mt-0.5 text-xs text-slate-600">
+                Vale hoje e nos próximos 4 anos de governo.
+              </p>
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                className="mt-2.5 aspect-[9/16] max-h-72 w-full rounded-lg bg-slate-950 object-contain"
+                src="/videos/raio-x-politico.mp4"
+              />
+            </div>
+            <a
+              href="/videos/raio-x-politico.mp4"
+              download="DesafioProvaReal-RaioX-Politico.mp4"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
+            >
+              <Download className="h-4 w-4" />
+              <span>Baixar Vídeo p/ WhatsApp</span>
+            </a>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col justify-between rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+            <div>
+              <p className="text-sm font-bold text-slate-900">
+                2. Como Checar Fake News pelo Celular (18s)
+              </p>
+              <p className="mt-0.5 text-xs text-slate-600">
+                Ideal para mandar no grupo da família.
+              </p>
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                className="mt-2.5 aspect-[9/16] max-h-72 w-full rounded-lg bg-slate-950 object-contain"
+                src="/videos/checar-whatsapp-celular.mp4"
+              />
+            </div>
+            <a
+              href="/videos/checar-whatsapp-celular.mp4"
+              download="DesafioProvaReal-Checar-Celular.mp4"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
+            >
+              <Download className="h-4 w-4" />
+              <span>Baixar Vídeo p/ Família</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Botões Grandes Estilo Linktree Limpo */}
+        <div className="border-t border-slate-100 pt-4">
+          <p className="mb-2.5 inline-flex items-center gap-1.5 text-sm font-bold text-slate-900">
+            <Share2 className="h-4 w-4" />
+            <span>Links Rápidos Oficiais (1 Toque):</span>
+          </p>
+          <div className="grid gap-2.5 sm:grid-cols-3">
             <a
               href={urlWhatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
+              className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
             >
               <span>Enviar no WhatsApp</span>
-              <ExternalLink className="h-3.5 w-3.5" />
+              <ExternalLink className="h-4 w-4" />
             </a>
 
             <a
-              href={urlX}
+              href="https://x.com/provareal_br"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+              className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
             >
-              <span>Postar no X</span>
-              <ExternalLink className="h-3.5 w-3.5" />
+              <span>Canal Oficial no X (@provareal_br)</span>
+              <ExternalLink className="h-4 w-4" />
             </a>
 
             <button
@@ -426,15 +489,33 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
               onClick={() => {
                 void copiarConviteRedes();
               }}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+              className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
             >
               {conviteCopiado ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              <span>
-                {conviteCopiado
-                  ? 'Texto copiado!'
-                  : 'Copiar p/ Instagram, Facebook e Lives'}
-              </span>
+              <span>{conviteCopiado ? 'Copiado!' : 'Copiar Convite p/ Lives'}</span>
             </button>
+          </div>
+
+          <div className="mt-2.5 flex flex-wrap gap-3 text-xs text-slate-600">
+            <a href={urlX} target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-900">
+              Publicar direto no meu X
+            </a>
+            <span>•</span>
+            <a
+              href="/videos/regras-desafio-oficial.mp4"
+              download="DesafioProvaReal-Regras.mp4"
+              className="underline hover:text-slate-900"
+            >
+              Baixar Vídeo 3: Regras do Desafio (24s)
+            </a>
+            <span>•</span>
+            <a
+              href="/videos/guerra-das-ias.mp4"
+              download="DesafioProvaReal-Guerra-IAs.mp4"
+              className="underline hover:text-slate-900"
+            >
+              Baixar Vídeo 4: Guerra das IAs (18s)
+            </a>
           </div>
         </div>
       </div>
