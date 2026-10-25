@@ -3,7 +3,7 @@
 > **"Acha que o seu lado fala a verdade e o outro mente? Não peça confiança cega: prove com código aberto — ou seja desmascarado ao vivo pela comunidade."**
 
 🌐 **Painel Oficial e Placar das IAs:** [https://desafioprovareal.pages.dev](https://desafioprovareal.pages.dev)  
-📱 **Redes Oficiais do Desafio:** [TikTok](https://www.tiktok.com/@desafioprovareal) • [Instagram](https://www.instagram.com/desafioprovareal) • [YouTube](https://www.youtube.com/@desafioprovareal) • [X](https://x.com/desafioprovareal) • [Facebook](https://www.facebook.com/desafioprovareal)
+📱 **Redes Oficiais do Desafio:** [TikTok](https://www.tiktok.com/@desafioprovareal) • [Instagram](https://www.instagram.com/desafioprovareal) • [YouTube](https://www.youtube.com/@desafioprovareal) • [X](https://x.com/provareal_br) • [Facebook](https://www.facebook.com/desafioprovareal)
 
 ---
 
