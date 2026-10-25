@@ -19,6 +19,7 @@ servidor/dados/*.db-wal
 *.wav
 *.mp3
 !ativos/*.mp4
+!web/public/videos/*.mp4
 __pycache__/
 *.pyc
 .DS_Store
