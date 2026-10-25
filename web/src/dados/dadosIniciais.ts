@@ -60,6 +60,52 @@ Use busca na web em bases públicas oficiais (Portal da Transparência, IBGE, Te
 5. [SE FOR PESSOA CITADA]: Se houver político/autoridade central no texto, resuma também contratos, emendas ou processos públicos relevantes ligados ao tema.`;
 }
 
+export const URL_COLAB_CORTADOR_GRATIS =
+  'https://colab.research.google.com/github/desafioprovareal/desafio-prova-real/blob/main/colab/cortador_auditavel_prova_real.ipynb';
+
+export function montarPromptGeradorCortes(entrada: string): string {
+  const alvo =
+    entrada.trim() ||
+    '[COLE AQUI O LINK DO VÍDEO DO YOUTUBE / LIVE OU A TRANSCRIÇÃO DA FALA]';
+
+  return `Você agora opera sob o Protocolo Aberto do #DesafioProvaReal (Modo: GERADOR DE CORTES DE VÍDEO AUDITÁVEIS PARA REDES SOCIAIS).
+
+NÚCLEO ÉTICO IMUTÁVEL (PROIBIDO VIOLAR):
+1. Proibido cortar conjunções adversativas ("mas", "porém", "entretanto"), ironias ou falas de terceiros para inverter o sentido do orador.
+2. Para CADA corte sugerido, audite obrigatoriamente 60 segundos antes e 60 segundos depois do trecho.
+3. Proibido ocultar a data real da gravação ou sugerir câmera lenta/rápida na voz (velocidade sempre 1.0x — Resolução TSE nº 23.610/2019).
+4. Confronte números, leis, contratos ou promessas citadas com bases públicas oficiais (Câmara, Senado, TSE, Portal da Transparência, IBGE, TCU, STF).
+
+VÍDEO / LIVE / TRANSCRIÇÃO PARA CORTAR:
+"""
+${alvo}
+"""
+
+Entregue até 3 sugestões de cortes verticais (30s a 55s) prontos para eu postar no Reels, TikTok, YouTube Shorts, X, Facebook e WhatsApp. Para CADA corte, informe exatamente:
+
+1. [TEMPOS EXATOS DO CORTE]:
+   - Início (MM:SS e total em segundos) -> Fim (MM:SS e total em segundos)
+   - Data real da fala original (DD/MM/AAAA)
+   - Confirmação da Janela (-60s / +60s): resumo do que foi dito antes e depois provando que não houve manipulação de contexto.
+
+2. [ARTE DA TELA DIVIDIDA (9:16)]:
+   - Selo no topo: [✅ FATO COMPROVADO | ⚠️ INCONCLUSIVO | ❌ CONTRADIZ DADOS OFICIAIS]
+   - Manchete curta e dado oficial verificado para exibir na metade superior do vídeo.
+   - (Dica: posso gerar o MP4 automático colando esses segundos em: ${URL_COLAB_CORTADOR_GRATIS} ou editar no CapCut/celular mantendo velocidade 1.0x).
+
+3. [LEGENDA PRONTA PARA AS REDES SOCIAIS]:
+   Texto direto, imparcial e chamativo convidando qualquer pessoa a auditar em https://desafioprovareal.pages.dev #DesafioProvaReal
+
+4. [FICHA DE AUDITORIA OBRIGATÓRIA — COPIAR E FIXAR NO 1º COMENTÁRIO SEM EDITAR]:
+🔎 FICHA DE AUDITORIA — #DesafioProvaReal
+📌 Fonte Original: [Link do vídeo original]
+⏱️ Trecho Exato Extraído: [MM:SS até MM:SS] | Data Original: [DD/MM/AAAA]
+📊 Veredito das Fontes: [Resumo + órgãos públicos consultados]
+🤖 Modelo de IA Utilizado: [Preencha o nome do seu modelo] | Custo aprox.: R$ 0,00 (Plano Gratuito) ou estimativa de tokens
+📝 Prompt Usado: "Gerador de Cortes Auditáveis #DesafioProvaReal — https://desafioprovareal.pages.dev"
+⚠️ AVISO ANTI-RASURA: Comentário editado = desclassificado! Audite gratuitamente em: https://desafioprovareal.pages.dev`;
+}
+
 export function montarPromptCriadorConteudo(entrada: string): string {
   const alvo =
     entrada.trim() ||

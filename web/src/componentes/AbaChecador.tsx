@@ -8,22 +8,25 @@ import {
   FileText,
   HelpCircle,
   PlayCircle,
+  Scissors,
   Share2,
 } from 'lucide-react';
 import {
   TEXTO_COMPARTILHAR_DESAFIO,
+  URL_COLAB_CORTADOR_GRATIS,
   montarPromptAuditorUniversal,
   montarPromptCriadorConteudo,
+  montarPromptGeradorCortes,
 } from '../dados/dadosIniciais';
 import { copiarParaAreaDeTransferencia } from '../utilitarios/formatadores';
 
 type ProvedorIaGratis = 'chatgpt' | 'gemini' | 'perplexity' | 'claude';
-type ModoOperacao = 'fiscalizar' | 'gerar-conteudo';
+type ModoOperacao = 'fiscalizar' | 'gerar-cortes' | 'gerar-conteudo';
 
 const OPCOES_IA_GRATIS: Array<{ id: ProvedorIaGratis; nome: string; url: string }> = [
   { id: 'chatgpt', nome: 'ChatGPT Grátis', url: 'https://chatgpt.com/' },
+  { id: 'gemini', nome: 'Google Gemini (Lê YouTube)', url: 'https://gemini.google.com/' },
   { id: 'perplexity', nome: 'Perplexity (Busca Web)', url: 'https://www.perplexity.ai/' },
-  { id: 'gemini', nome: 'Gemini Grátis', url: 'https://gemini.google.com/' },
   { id: 'claude', nome: 'Claude Grátis', url: 'https://claude.ai/' },
 ];
 
@@ -31,6 +34,8 @@ const EXEMPLO_BOATO =
   'URGENTE: Disseram no grupo da família que a partir de segunda-feira vão cobrar 27% de imposto automático sobre qualquer transferência acima de R$ 200.';
 
 const EXEMPLO_POLITICO = 'Arthur Lira';
+
+const EXEMPLO_VIDEO_CORTE = 'https://www.youtube.com/watch?v=YbEPhB5KJGw';
 
 const EXEMPLO_GERAR_POST =
   'Compare o que foi prometido hoje sobre corte de gastos públicos com os dados reais do Tesouro Nacional e gere um post imparcial para WhatsApp e Instagram.';
@@ -62,6 +67,9 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
   }, [conteudoColado, modo]);
 
   const promptMontado = useMemo(() => {
+    if (modo === 'gerar-cortes') {
+      return montarPromptGeradorCortes(conteudoColado);
+    }
     if (modo === 'gerar-conteudo') {
       return montarPromptCriadorConteudo(conteudoColado);
     }
@@ -71,13 +79,14 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
     return montarPromptAuditorUniversal(base);
   }, [conteudoColado, modo]);
 
+  const provedorPadraoDoModo: ProvedorIaGratis =
+    modo === 'gerar-cortes' ? 'gemini' : 'chatgpt';
+
   const executarEmIa = async (provedor: ProvedorIaGratis) => {
     setAvisoVazio('');
-    if (conteudoColado.trim().length < 3) {
+    if (conteudoColado.trim().length < 3 && modo === 'fiscalizar') {
       setAvisoVazio(
-        modo === 'gerar-conteudo'
-          ? 'Digite um tema, nome de político ou cole o link de uma live/vídeo para gerar seu post.'
-          : 'Digite o nome de um político (ex.: nome e sobrenome) ou cole uma notícia/vídeo na caixa acima.'
+        'Digite o nome de um político (ex.: nome e sobrenome) ou cole uma notícia/vídeo na caixa acima.'
       );
       return;
     }
@@ -106,18 +115,18 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
 
   const urlWhatsapp = `https://wa.me/?text=${encodeURIComponent(TEXTO_COMPARTILHAR_DESAFIO)}`;
   const textoCurtoX =
-    'Ganhe quem ganhar a eleição, ninguém vai empurrar mentira goela abaixo! Digite SÓ O NOME de qualquer político ou cheque vídeos grátis no #DesafioProvaReal: https://desafioprovareal.pages.dev @provareal_br';
+    'Ganhe quem ganhar a eleição, ninguém vai empurrar mentira goela abaixo! Digite SÓ O NOME de qualquer político ou gere cortes auditáveis grátis no #DesafioProvaReal: https://desafioprovareal.pages.dev @provareal_br';
   const urlX = `https://x.com/intent/tweet?text=${encodeURIComponent(textoCurtoX)}`;
 
   return (
     <section aria-labelledby="titulo-principal-checador" className="space-y-5">
       {/* Cartão Principal Direto ao Ponto */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-        {/* Seletor Simples de 2 Funções: Fiscalizar vs. Gerar Conteúdo */}
+        {/* Seletor Simples de 3 Funções: Fiscalizar | Gerar Cortes de Vídeo | Gerar Post */}
         <div
           role="tablist"
           aria-label="Escolha o que deseja fazer"
-          className="mb-5 grid grid-cols-1 gap-2 rounded-xl bg-slate-100 p-1.5 sm:grid-cols-2"
+          className="mb-5 grid grid-cols-1 gap-2 rounded-xl bg-slate-100 p-1.5 sm:grid-cols-3"
         >
           <button
             type="button"
@@ -128,13 +137,31 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
               setStatusAcao('inativo');
               setAvisoVazio('');
             }}
-            className={`rounded-lg px-4 py-2.5 text-sm font-bold transition sm:text-base ${
+            className={`rounded-lg px-3 py-2.5 text-sm font-bold transition ${
               modo === 'fiscalizar'
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-200'
             }`}
           >
-            1. Checar Fatos ou Raio-X de Político
+            1. Checar ou Raio-X Político
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={modo === 'gerar-cortes'}
+            onClick={() => {
+              setModo('gerar-cortes');
+              setStatusAcao('inativo');
+              setAvisoVazio('');
+            }}
+            className={`rounded-lg px-3 py-2.5 text-sm font-bold transition ${
+              modo === 'gerar-cortes'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            2. Gerar Cortes de Vídeo
           </button>
 
           <button
@@ -146,13 +173,13 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
               setStatusAcao('inativo');
               setAvisoVazio('');
             }}
-            className={`rounded-lg px-4 py-2.5 text-sm font-bold transition sm:text-base ${
+            className={`rounded-lg px-3 py-2.5 text-sm font-bold transition ${
               modo === 'gerar-conteudo'
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'text-slate-700 hover:bg-slate-200'
             }`}
           >
-            2. Gerar Post / Corte p/ Redes Sociais
+            3. Gerar Post Escrito
           </button>
         </div>
 
@@ -160,23 +187,32 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
           id="titulo-principal-checador"
           className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
         >
-          {modo === 'fiscalizar'
-            ? 'Fiscalize qualquer político, governo, vídeo ou notícia.'
-            : 'Crie posts e cortes auditáveis prontos para compartilhar.'}
+          {modo === 'fiscalizar' && 'Fiscalize qualquer político, governo, vídeo ou notícia.'}
+          {modo === 'gerar-cortes' && 'Gere cortes de vídeos na sua IA para postar nas redes.'}
+          {modo === 'gerar-conteudo' && 'Crie posts auditáveis prontos para compartilhar.'}
         </h1>
 
         <p className="mt-2 text-base leading-relaxed text-slate-600">
-          {modo === 'fiscalizar' ? (
+          {modo === 'fiscalizar' && (
             <>
               Vale hoje e durante todo o mandato — ganhe quem ganhar. Digite apenas o{' '}
               <strong className="text-slate-900">nome de um político</strong> (para levantar
               passado, processos em aberto, contratos e alianças) ou cole um{' '}
               <strong className="text-slate-900">vídeo/mensagem</strong> recebida.
             </>
-          ) : (
+          )}
+          {modo === 'gerar-cortes' && (
             <>
-              Cole o link de uma <strong className="text-slate-900">live, vídeo, notícia</strong> ou
-              tema político e gere na hora textos prontos para{' '}
+              Cole o link de um <strong className="text-slate-900">debate, live ou vídeo do YouTube</strong>{' '}
+              (ou deixe em branco para copiar só o prompt). A IA encontra os{' '}
+              <strong className="text-slate-900">minutos exatos sem tirar de contexto</strong>, checa os
+              dados oficiais e entrega a legenda + Ficha de Auditoria para você postar em qualquer rede!
+            </>
+          )}
+          {modo === 'gerar-conteudo' && (
+            <>
+              Cole uma <strong className="text-slate-900">notícia, promessa ou tema político</strong>{' '}
+              e gere na hora textos prontos para{' '}
               <strong className="text-slate-900">WhatsApp, Instagram, X, TikTok e Facebook</strong>{' '}
               com a Ficha de Auditoria oficial do <strong>#DesafioProvaReal</strong>.
             </>
@@ -189,9 +225,9 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
               htmlFor="caixa-verificacao"
               className="text-base font-semibold text-slate-900"
             >
-              {modo === 'fiscalizar'
-                ? 'Nome do político, medida do governo ou notícia:'
-                : 'Link da live/vídeo, notícia ou tema para virar post:'}
+              {modo === 'fiscalizar' && 'Nome do político, medida do governo ou notícia:'}
+              {modo === 'gerar-cortes' && 'Link do YouTube/live ou transcrição (opcional):'}
+              {modo === 'gerar-conteudo' && 'Notícia, vídeo ou tema para virar post:'}
             </label>
 
             {conteudoColado.length > 0 ? (
@@ -228,6 +264,17 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
                   Exemplo: Corrente de WhatsApp
                 </button>
               </div>
+            ) : modo === 'gerar-cortes' ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setConteudoColado(EXEMPLO_VIDEO_CORTE);
+                  setAvisoVazio('');
+                }}
+                className="text-sm font-medium text-slate-600 underline hover:text-slate-900"
+              >
+                Exemplo: Link de vídeo do YouTube
+              </button>
             ) : (
               <button
                 type="button"
@@ -253,7 +300,9 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
             placeholder={
               modo === 'fiscalizar'
                 ? 'Digite o nome de qualquer político OU cole um link/mensagem aqui...'
-                : 'Cole o link de uma live/vídeo do YouTube, notícia ou escreva o tema do post...'
+                : modo === 'gerar-cortes'
+                  ? 'Cole o link do vídeo do YouTube/live ou a transcrição aqui (ou copie o prompt direto abaixo)...'
+                  : 'Cole a notícia ou escreva o tema político do post...'
             }
             className="mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 p-4 text-lg text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none"
           />
@@ -273,23 +322,60 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
         )}
 
         {/* Botão Principal Grande (1 Clique) */}
-        <div className="mt-5">
+        <div className="mt-5 space-y-2.5">
           <button
             type="button"
             onClick={() => {
-              void executarEmIa('chatgpt');
+              void executarEmIa(provedorPadraoDoModo);
             }}
             className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-slate-900 px-6 py-4 text-lg font-bold text-white transition hover:bg-slate-800"
           >
             <span>
-              {modo === 'gerar-conteudo'
-                ? 'Gerar Post e Ficha p/ Redes Sociais (Grátis)'
-                : ehModoNomePolitico
-                  ? 'Levantar Passado, Processos e Contratos (Grátis)'
-                  : 'Verificar Agora de Graça'}
+              {modo === 'gerar-cortes'
+                ? 'Copiar Prompt de Cortes e Abrir Google Gemini (Lê YouTube)'
+                : modo === 'gerar-conteudo'
+                  ? 'Gerar Post e Ficha p/ Redes Sociais (Grátis)'
+                  : ehModoNomePolitico
+                    ? 'Levantar Passado, Processos e Contratos (Grátis)'
+                    : 'Verificar Agora de Graça'}
             </span>
             <ExternalLink className="h-5 w-5" />
           </button>
+
+          {modo === 'gerar-cortes' && (
+            <div className="grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  void copiarPromptPronto();
+                }}
+                className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
+              >
+                {statusAcao === 'copiado' ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    <span>Prompt de Cortes Copiado!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    <span>Só Copiar Prompt p/ Minha IA</span>
+                  </>
+                )}
+              </button>
+
+              <a
+                href={URL_COLAB_CORTADOR_GRATIS}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
+              >
+                <Scissors className="h-4 w-4" />
+                <span>Abrir Cortador MP4 Grátis (Google Colab)</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Instrução Clara Pós-Clique */}
@@ -307,15 +393,15 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
         {/* Alternativas de IA + Copiar Prompt Direto */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
           <div className="flex flex-wrap items-center gap-2">
-            <span>Ou abrir em:</span>
+            <span>Ou usar em outra IA:</span>
             <button
               type="button"
               onClick={() => {
-                void executarEmIa('perplexity');
+                void executarEmIa('chatgpt');
               }}
               className="rounded-md border border-slate-200 px-2.5 py-1 font-medium text-slate-800 hover:bg-slate-100"
             >
-              Perplexity (Busca Web)
+              ChatGPT
             </button>
             <button
               type="button"
@@ -324,7 +410,16 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
               }}
               className="rounded-md border border-slate-200 px-2.5 py-1 font-medium text-slate-800 hover:bg-slate-100"
             >
-              Gemini Grátis
+              Google Gemini
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void executarEmIa('perplexity');
+              }}
+              className="rounded-md border border-slate-200 px-2.5 py-1 font-medium text-slate-800 hover:bg-slate-100"
+            >
+              Perplexity
             </button>
             <button
               type="button"
@@ -333,7 +428,7 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
               }}
               className="rounded-md border border-slate-200 px-2.5 py-1 font-medium text-slate-800 hover:bg-slate-100"
             >
-              Claude Grátis
+              Claude
             </button>
           </div>
 
@@ -364,9 +459,9 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
             <span className="inline-flex items-center gap-2">
               <FileText className="h-4 w-4 text-slate-500" />
               <span>
-                {modo === 'gerar-conteudo'
-                  ? 'Ver / Copiar o Prompt Completo de Gerar Conteúdo'
-                  : 'Ver / Copiar o Prompt Completo de Fiscalização'}
+                {modo === 'gerar-cortes' && 'Ver / Copiar o Prompt Completo de Gerar Cortes de Vídeo'}
+                {modo === 'gerar-conteudo' && 'Ver / Copiar o Prompt Completo de Gerar Post'}
+                {modo === 'fiscalizar' && 'Ver / Copiar o Prompt Completo de Fiscalização'}
               </span>
             </span>
             <span className="text-xs font-normal underline">Abrir</span>
@@ -390,7 +485,10 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
       </div>
 
       {/* Barra Simples Estilo Linktree + Vídeos Diretos p/ Baixar no WhatsApp (Sem Depender de Redes) */}
-      <div id="videos" className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div
+        id="videos"
+        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+      >
         <div>
           <h2 className="inline-flex items-center gap-2 text-lg font-bold text-slate-900 sm:text-xl">
             <PlayCircle className="h-5 w-5 text-slate-900" />
@@ -497,7 +595,12 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
           </div>
 
           <div className="mt-2.5 flex flex-wrap gap-3 text-xs text-slate-600">
-            <a href={urlX} target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-900">
+            <a
+              href={urlX}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-slate-900"
+            >
               Publicar direto no meu X
             </a>
             <span>•</span>
@@ -532,16 +635,16 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
         </summary>
         <ol className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-base text-slate-700">
           <li>
-            <strong>1. Escolha lá em cima:</strong> Toque em <em>Checar Fatos / Raio-X</em> ou em{' '}
-            <em>Gerar Post p/ Redes Sociais</em>.
+            <strong>1. Escolha o botão lá em cima:</strong> <em>Checar / Raio-X</em>,{' '}
+            <em>Gerar Cortes de Vídeo</em> ou <em>Gerar Post Escrito</em>.
           </li>
           <li>
-            <strong>2. Digite ou cole:</strong> Escreva só o nome de um político OU cole o link de
-            uma live/vídeo/notícia e aperte o botão preto.
+            <strong>2. Digite ou cole:</strong> Escreva o nome de um político OU cole o link do
+            YouTube/notícia e aperte o botão preto.
           </li>
           <li>
-            <strong>3. Cole e envie:</strong> Na IA gratuita que abrir, segure o dedo no campo de
-            texto, toque em <em>Colar</em> e envie!
+            <strong>3. Cole e envie:</strong> Na IA que abrir (Google Gemini, ChatGPT, Claude ou
+            sua IA favorita), segure o dedo, toque em <em>Colar</em> e envie!
           </li>
         </ol>
       </details>
@@ -549,8 +652,8 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
       {aoIrParaDesafio && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4">
           <p className="text-sm text-slate-700 sm:text-base">
-            <strong>Já publicou seu post com #DesafioProvaReal?</strong> Cadastre no Ranking ou
-            audite postagens.
+            <strong>Já gerou seu corte com #DesafioProvaReal?</strong> Cadastre no Ranking ou audite
+            postagens.
           </p>
           <button
             type="button"

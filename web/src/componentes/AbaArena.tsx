@@ -1,7 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Check, Copy, Plus, Search } from 'lucide-react';
+import { Check, Copy, ExternalLink, Plus, Scissors, Search } from 'lucide-react';
 import configuracaoLinks from '../dados/configuracaoLinks.json';
-import { PROMPT_AUDITOR_PADRAO } from '../dados/dadosIniciais';
+import {
+  PROMPT_AUDITOR_PADRAO,
+  URL_COLAB_CORTADOR_GRATIS,
+  montarPromptGeradorCortes,
+} from '../dados/dadosIniciais';
 import type {
   ModeloIaPlacar,
   NovaSubmissaoArena,
@@ -15,12 +19,6 @@ import {
   formatarInteiro,
   nomeRedeSocial,
 } from '../utilitarios/formatadores';
-
-const PROMPT_CRIADOR_RESUMIDO = `Você é um Editor de Cortes Auditáveis do #DesafioProvaReal.
-Analise a transcrição ou vídeo abaixo com imparcialidade absoluta (sem puxar sardinha para direita nem esquerda):
-1. Extraia um trecho contínuo sem cortar frases pela metade (verifique 60s antes e 60s depois).
-2. Confronte cada afirmação com dados oficiais (IBGE, Câmara, Senado, STF, Banco Central, IPEA).
-3. Gere ao final a FICHA DE AUDITORIA OBRIGATÓRIA para eu colar no 1º comentário contendo: link original, minuto/segundo exato, data real da fala, modelo de IA usado, estimativa de tokens em R$ e este prompt completo.`;
 
 interface PropriedadesAbaArena {
   participantes: ParticipanteArena[];
@@ -61,7 +59,7 @@ export const AbaArena: React.FC<PropriedadesAbaArena> = ({
   }, [participantes, termoBusca]);
 
   const copiarPromptCriador = async () => {
-    const ok = await copiarParaAreaDeTransferencia(PROMPT_CRIADOR_RESUMIDO);
+    const ok = await copiarParaAreaDeTransferencia(montarPromptGeradorCortes(''));
     if (ok) {
       setPromptCopiado(true);
       window.setTimeout(() => setPromptCopiado(false), 3000);
@@ -155,6 +153,17 @@ export const AbaArena: React.FC<PropriedadesAbaArena> = ({
             <Plus className="h-4 w-4" />
             <span>{mostrarFormulario ? 'Fechar Formulário' : 'Enviar Minha Postagem'}</span>
           </button>
+
+          <a
+            href={URL_COLAB_CORTADOR_GRATIS}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100 sm:text-base"
+          >
+            <Scissors className="h-4 w-4" />
+            <span>Cortador MP4 Grátis (Google Colab)</span>
+            <ExternalLink className="h-3.5 w-3.5" />
+          </a>
         </div>
 
         {mensagemSucesso && (
