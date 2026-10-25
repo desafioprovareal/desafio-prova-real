@@ -3,16 +3,19 @@ import { ArrowRight, Check, Copy, ExternalLink, HelpCircle } from 'lucide-react'
 import { montarPromptAuditorUniversal } from '../dados/dadosIniciais';
 import { copiarParaAreaDeTransferencia } from '../utilitarios/formatadores';
 
-type ProvedorIaGratis = 'chatgpt' | 'gemini' | 'claude';
+type ProvedorIaGratis = 'chatgpt' | 'gemini' | 'perplexity' | 'claude';
 
 const OPCOES_IA_GRATIS: Array<{ id: ProvedorIaGratis; nome: string; url: string }> = [
   { id: 'chatgpt', nome: 'ChatGPT Grátis', url: 'https://chatgpt.com/' },
+  { id: 'perplexity', nome: 'Perplexity (Busca Web)', url: 'https://www.perplexity.ai/' },
   { id: 'gemini', nome: 'Gemini Grátis', url: 'https://gemini.google.com/' },
   { id: 'claude', nome: 'Claude Grátis', url: 'https://claude.ai/' },
 ];
 
-const EXEMPLO_TESTE =
+const EXEMPLO_BOATO =
   'URGENTE: Disseram no grupo da família que a partir de segunda-feira vão cobrar 27% de imposto automático sobre qualquer transferência acima de R$ 200.';
+
+const EXEMPLO_POLITICO = 'Arthur Lira';
 
 interface PropriedadesAbaChecador {
   aoIrParaDesafio?: () => void;
@@ -24,17 +27,32 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
   const [nomeIaAberta, setNomeIaAberta] = useState('ChatGPT Grátis');
   const [avisoVazio, setAvisoVazio] = useState('');
 
+  const ehModoNomePolitico = useMemo(() => {
+    const t = conteudoColado.trim();
+    const palavras = t.split(/\s+/).filter(Boolean);
+    return (
+      t.length >= 3 &&
+      palavras.length >= 1 &&
+      palavras.length <= 7 &&
+      !t.includes('http://') &&
+      !t.includes('https://') &&
+      t.length <= 70
+    );
+  }, [conteudoColado]);
+
   const promptMontado = useMemo(() => {
     const base =
       conteudoColado.trim() ||
-      '[COLE AQUI O TEXTO DA MENSAGEM, NOTÍCIA OU LINK DO VÍDEO QUE VOCÊ QUER VERIFICAR]';
+      '[DIGITE O NOME DE UM POLÍTICO OU COLE O TEXTO/LINK QUE VOCÊ QUER VERIFICAR]';
     return montarPromptAuditorUniversal(base);
   }, [conteudoColado]);
 
   const verificarEmIa = async (provedor: ProvedorIaGratis) => {
     setAvisoVazio('');
-    if (conteudoColado.trim().length < 5) {
-      setAvisoVazio('Cole primeiro a mensagem, notícia ou link do vídeo na caixa acima.');
+    if (conteudoColado.trim().length < 3) {
+      setAvisoVazio(
+        'Digite o nome de um político (ex.: nome e sobrenome) ou cole uma notícia/vídeo na caixa acima.'
+      );
       return;
     }
 
@@ -47,8 +65,10 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
 
   const apenasCopiarTexto = async () => {
     setAvisoVazio('');
-    if (conteudoColado.trim().length < 5) {
-      setAvisoVazio('Cole primeiro a mensagem, notícia ou link do vídeo na caixa acima.');
+    if (conteudoColado.trim().length < 3) {
+      setAvisoVazio(
+        'Digite o nome de um político ou cole uma notícia/vídeo na caixa acima.'
+      );
       return;
     }
     await copiarParaAreaDeTransferencia(promptMontado);
@@ -64,21 +84,24 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
           id="titulo-principal-checador"
           className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl"
         >
-          Recebeu um vídeo ou notícia política? Tire a Prova Real.
+          Fiscalize qualquer político, governo, vídeo ou notícia.
         </h1>
         <p className="mt-2 text-base leading-relaxed text-slate-600">
-          Cole abaixo o texto ou o link que mandaram no seu WhatsApp. Em 1 clique, a verificação
-          checa as fontes públicas oficiais — sem defender político nenhum.
+          Vale hoje e durante todo o mandato — ganhe quem ganhar. Digite apenas o{' '}
+          <strong className="text-slate-900">nome de um político</strong> (para levantar passado,
+          processos na Justiça, contratos e alianças) ou cole um{' '}
+          <strong className="text-slate-900">vídeo/mensagem</strong> recebida.
         </p>
 
         <div className="mt-5">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <label
               htmlFor="caixa-verificacao"
               className="text-base font-semibold text-slate-900"
             >
-              Mensagem, notícia ou link do vídeo:
+              Nome do político, medida do governo ou notícia:
             </label>
+
             {conteudoColado.length > 0 ? (
               <button
                 type="button"
@@ -91,30 +114,49 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
                 Limpar
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setConteudoColado(EXEMPLO_TESTE);
-                  setAvisoVazio('');
-                }}
-                className="text-sm font-medium text-slate-600 underline hover:text-slate-900"
-              >
-                Preencher com um exemplo
-              </button>
+              <div className="flex flex-wrap gap-3 text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConteudoColado(EXEMPLO_POLITICO);
+                    setAvisoVazio('');
+                  }}
+                  className="font-medium text-slate-600 underline hover:text-slate-900"
+                >
+                  Exemplo: Nome de político
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConteudoColado(EXEMPLO_BOATO);
+                    setAvisoVazio('');
+                  }}
+                  className="font-medium text-slate-600 underline hover:text-slate-900"
+                >
+                  Exemplo: Corrente de WhatsApp
+                </button>
+              </div>
             )}
           </div>
 
           <textarea
             id="caixa-verificacao"
-            rows={4}
+            rows={3}
             value={conteudoColado}
             onChange={(e) => {
               setConteudoColado(e.target.value);
               if (avisoVazio) setAvisoVazio('');
             }}
-            placeholder="Toque aqui, segure o dedo e aperte Colar..."
+            placeholder="Digite o nome de qualquer político OU cole um link/mensagem aqui..."
             className="mt-2 w-full rounded-xl border border-slate-300 bg-slate-50 p-4 text-lg text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:bg-white focus:outline-none"
           />
+
+          {ehModoNomePolitico && (
+            <p className="mt-2 text-sm text-slate-600">
+              ✓ <strong>Modo Raio-X de Figura Pública ativado:</strong> vai buscar na web passado,
+              processos em aberto ou julgados, contratos/emendas e rede de alianças.
+            </p>
+          )}
         </div>
 
         {avisoVazio && (
@@ -132,7 +174,11 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
             }}
             className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-slate-900 px-6 py-4 text-lg font-bold text-white transition hover:bg-slate-800"
           >
-            <span>Verificar Agora de Graça</span>
+            <span>
+              {ehModoNomePolitico
+                ? 'Levantar Passado, Processos e Contratos (Grátis)'
+                : 'Verificar Agora de Graça'}
+            </span>
             <ExternalLink className="h-5 w-5" />
           </button>
         </div>
@@ -140,9 +186,7 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
         {/* Instrução Clara Pós-Clique */}
         {statusAcao === 'aberto' && (
           <div className="mt-4 rounded-xl border-2 border-slate-900 bg-slate-50 p-4 text-base text-slate-900">
-            <p className="font-bold">
-              ✓ Pergunta de auditoria copiada automaticamente!
-            </p>
+            <p className="font-bold">✓ Pedido de investigação copiado automaticamente!</p>
             <p className="mt-1 text-slate-700">
               Na janela do <strong>{nomeIaAberta}</strong> que acabou de abrir, basta{' '}
               <strong>segurar o dedo e tocar em Colar</strong> (ou apertar <code>Ctrl + V</code> no
@@ -154,7 +198,16 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
         {/* Alternativas Discretas em 1 Linha */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-sm text-slate-600">
           <div className="flex flex-wrap items-center gap-2">
-            <span>Ou abrir direto em:</span>
+            <span>Ou pesquisar direto em:</span>
+            <button
+              type="button"
+              onClick={() => {
+                void verificarEmIa('perplexity');
+              }}
+              className="rounded-md border border-slate-200 px-2.5 py-1 font-medium text-slate-800 hover:bg-slate-100"
+            >
+              Perplexity (Busca Web)
+            </button>
             <button
               type="button"
               onClick={() => {
@@ -190,46 +243,44 @@ export const AbaChecador: React.FC<PropriedadesAbaChecador> = ({ aoIrParaDesafio
             ) : (
               <>
                 <Copy className="h-4 w-4" />
-                <span>Só copiar texto da pergunta</span>
+                <span>Só copiar pergunta</span>
               </>
             )}
           </button>
         </div>
       </div>
 
-      {/* Ajuda Simples sob Demanda (Sem poluir a tela) */}
+      {/* Ajuda Simples sob Demanda */}
       <details className="group rounded-2xl border border-slate-200 bg-white p-5">
         <summary className="flex cursor-pointer list-none items-center justify-between text-base font-semibold text-slate-900">
           <span className="inline-flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-slate-500" />
-            <span>Primeira vez usando no celular? Veja como é fácil (3 passos)</span>
+            <span>Como usar pelo celular em 3 passos simples</span>
           </span>
           <span className="text-sm font-normal text-slate-500 group-open:hidden">Mostrar</span>
           <span className="hidden text-sm font-normal text-slate-500 group-open:inline">Fechar</span>
         </summary>
         <ol className="mt-4 space-y-3 border-t border-slate-100 pt-4 text-base text-slate-700">
           <li>
-            <strong>1. Copie no WhatsApp:</strong> Segure o dedo em cima da mensagem ou link
-            suspeito que você recebeu e toque em <em>Copiar</em>.
+            <strong>1. Digite ou cole:</strong> Escreva só o nome de um político (para ver ficha,
+            processos, emendas e alianças) OU cole uma mensagem/link do WhatsApp.
           </li>
           <li>
-            <strong>2. Cole na caixa acima:</strong> Toque dentro da caixa grande aqui do site,
-            segure o dedo e toque em <em>Colar</em>.
+            <strong>2. Aperte o botão preto:</strong> O site monta a pesquisa imparcial sozinho e
+            abre a IA gratuita.
           </li>
           <li>
-            <strong>3. Aperte Verificar Agora:</strong> Uma inteligência artificial gratuita vai
-            abrir. Lá dentro, segure o dedo de novo, toque em <em>Colar</em> e aperte a setinha de
-            enviar!
+            <strong>3. Cole e envie:</strong> Na tela que abriu, segure o dedo no campo de texto,
+            toque em <em>Colar</em> e envie!
           </li>
         </ol>
       </details>
 
-      {/* Chamada discreta para quem veio pelo Desafio */}
       {aoIrParaDesafio && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4">
           <p className="text-sm text-slate-700 sm:text-base">
-            <strong>Quer competir no #DesafioProvaReal?</strong> Gere cortes auditáveis com sua IA
-            e entre no ranking aberto.
+            <strong>Quer entrar no Ranking do #DesafioProvaReal?</strong> Gere cortes auditáveis ou
+            desmascare manipulações.
           </p>
           <button
             type="button"

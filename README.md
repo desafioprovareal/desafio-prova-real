@@ -9,11 +9,11 @@
 
 ## O que é o Desafio Prova Real?
 
-Em época de eleição, as redes sociais viram uma guerra de cortes picotados fora de contexto, vídeos antigos fingindo ser de hoje e números inventados — **de todos os lados políticos**.
+Seja em época de eleição ou **durante todo o mandato de qualquer governo que vença**, a população é bombardeada por cortes fora de contexto, números maquiados e discursos tentando empurrar inverdades goela abaixo — **de todos os lados políticos**.
 
-O **Desafio Prova Real** é uma arena pública, apartidária e 100% em código aberto com duas ferramentas gratuitas para qualquer brasileiro:
+O **Desafio Prova Real** é uma ferramenta cidadã permanente, apartidária e 100% em código aberto com duas funções gratuitas para qualquer brasileiro:
 
-1. **Para qualquer cidadão (mesmo sem pagar IA e direto pelo celular):** Um verificador aberto onde você joga qualquer vídeo do WhatsApp, discurso, reportagem ou postagem e recebe na hora o que é **✅ Fato Comprovado (com fonte oficial)**, **⚠️ Inconclusivo** e **❌ Falso ou Fora de Contexto**.
+1. **Fiscalização Permanente e Raio-X de Políticos (direto pelo celular e grátis):** Digite **apenas o nome de qualquer político ou autoridade** (para levantar na web passado, processos em aberto ou julgados na Justiça, contratos, emendas e rede de convívio/alianças) OU cole qualquer ato do governo, vídeo do WhatsApp ou notícia para ver na hora o que é **✅ Fato Comprovado**, **⚠️ Inconclusivo** e **❌ Mentira ou Fora de Contexto**.
 2. **Para criadores, eleitores de Direita, Esquerda ou Centro e usuários de IA:** Um desafio competitivo com ranking unificado onde você gera cortes verificados de debates, sabatinas e notícias usando a sua IA favorita (Claude, Gemini, ChatGPT, DeepSeek, etc.), publica o prompt exato e o custo em reais dos tokens no comentário, e desafia qualquer pessoa a auditar seu vídeo!
 
 ---

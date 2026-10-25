@@ -4,10 +4,10 @@ Mesmo sem pagar nenhuma assinatura de Inteligência Artificial, você participa 
 
 ---
 
-## Opção A — Quero Auditar Vídeos, Reportagens ou Postagens (Mais Rápido)
-1. Abra gratuitamente no celular ou computador o **Google Gemini** (`gemini.google.com`), o **ChatGPT** (`chatgpt.com`) ou o **DeepSeek** (`chat.deepseek.com` com botão de Busca Web ativado).
-2. Copie o bloco completo do [**Prompt 02 — Auditor Universal**](../prompts/02-auditor-checador-universal.md).
-3. Cole o link da reportagem, postagem ou a transcrição do vídeo do YouTube (no YouTube basta clicar em *"...mais -> Mostrar transcrição"* abaixo do vídeo!).
+## Opção A — Quero Puxar o Raio-X de um Político ou Fiscalizar Atos do Governo / Vídeos (Mais Rápido)
+1. Abra no celular ou computador o painel **[https://desafioprovareal.pages.dev](https://desafioprovareal.pages.dev)** (ou abra direto **ChatGPT** `chatgpt.com`, **Perplexity** `perplexity.ai`, **Google Gemini** `gemini.google.com` ou **DeepSeek** com Busca Web).
+2. **Digite apenas o nome de um político/autoridade** (para levantar passado, processos em aberto vs. condenações definitivas, patrimônio, contratos/emendas e rede de convívio/alianças) OU cole qualquer medida de governo, reportagem ou vídeo do WhatsApp usando o [**Prompt 02 — Auditor, Fiscal de Governo e Raio-X**](../prompts/02-auditor-checador-universal.md).
+3. Funciona **hoje e durante todo o próximo mandato**, independente de qual lado ganhe a eleição!
 4. Se encontrar uma postagem com a `#DesafioProvaReal` cujo autor mentiu no prompt ou cortou fora de contexto, copie o selo de reprovação gerado, cole nos comentários e ganhe pontos de **Caça-Fraudes** no painel!
 
 ---

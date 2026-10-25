@@ -1,15 +1,24 @@
 # 📱 Guia Passo a Passo no Celular (Para Quem Nunca Usou IA)
 
 > **Para quem é este guia?**  
-> Feito especialmente para você que recebeu um vídeo político, áudio ou notícia duvidosa no **WhatsApp**, **Facebook**, **Instagram** ou **TikTok** e quer descobrir em **menos de 1 minuto** se aquilo é verdade ou montagem — **sem gastar 1 centavo** e **sem precisar entender de tecnologia**.
+> Feito especialmente para você que quer **puxar a ficha pública de qualquer político** (passado, processos na Justiça, contratos e alianças) OU recebeu um vídeo, medida do governo ou notícia duvidosa no **WhatsApp**, **Facebook**, **Instagram** ou **TikTok** — **sem gastar 1 centavo**, **sem precisar entender de tecnologia**, hoje e **durante os próximos anos de qualquer governo que vença**.
 
 ---
 
-## Como Checar em 3 Toques no Seu Telefone
+## Como Fiscalizar em 2 Toques pelo Nosso Site (Mais Fácil!)
 
-### PASSO 1 — Copie o link ou o texto do que você recebeu
-1. No **WhatsApp**: segure o dedo em cima da mensagem ou link por 2 segundos e toque em **Copiar** (ou no ícone de duas folhinhas no topo).
-2. No **Instagram / TikTok / YouTube**: toque na setinha **Compartilhar** e depois toque em **Copiar link**.
+1. Abra no celular: **[https://desafioprovareal.pages.dev](https://desafioprovareal.pages.dev)**
+2. Na caixa grande da tela inicial, **digite apenas o nome de um político** (ex.: nome e sobrenome) OU **cole o link/mensagem** que você recebeu no WhatsApp.
+3. Toque no botão preto. O site já monta a investigação imparcial sozinho e abre a IA gratuita — basta segurar o dedo, tocar em **Colar** e enviar!
+
+---
+
+## Como Checar Manualmente em 3 Toques (Direto no Aplicativo da IA)
+
+### PASSO 1 — Escolha o nome do político OU copie o link/texto recebido
+1. **Para puxar a capivara pública de um político:** basta saber o nome dele (não precisa copiar link nenhum!).
+2. **No WhatsApp:** segure o dedo em cima da mensagem ou link por 2 segundos e toque em **Copiar**.
+3. **No Instagram / TikTok / YouTube:** toque na setinha **Compartilhar** e depois toque em **Copiar link**.
 
 ---
 

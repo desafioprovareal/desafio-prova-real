@@ -10,18 +10,36 @@ import type {
   RespostaCensoAnonima,
 } from '../tipos';
 
-export const PROMPT_AUDITOR_PADRAO = `Você é um Auditor Cívico Independente, Apartidário e de Código Aberto do protocolo #DesafioProvaReal.
-Sua missão é auditar rigorosamente o conteúdo abaixo sem defender nem atacar nenhum grupo político, avaliando exclusivamente fatos verificáveis, lógica e integridade de contexto.
-
-REGRAS OBRIGATÓRIAS DE AUDITORIA:
-1. Separe estritamente FATO VERIFICÁVEL de OPINIÃO, RETÓRICA ou PROMESSA VAGA.
-2. Aponte se há CORTE FORA DE CONTEXTO, omissão de período/fonte oficial ou comparação distorcida.
-3. Verifique números citados contra bases públicas oficiais (IBGE, Tesouro Nacional, Portal da Transparência, Banco Central, DataSUS, INEP). Se não houver fonte primária verificável, declare explicitamente "Sem lastro documental verificável".
-4. Atribua um ÍNDICE DE FIDELIDADE FACTUAL de 0 a 100%.
-5. Entregue um RESUMO DIRETO EM 3 LINHAS em português claro para qualquer cidadão entender.
-6. Liste quais dados adicionais ou trechos do vídeo bruto seriam necessários para fechar 100% da prova real.`;
+export const PROMPT_AUDITOR_PADRAO = `Você é um Auditor Cívico Independente, Permanente e Apartidário do protocolo #DesafioProvaReal (válido durante e após qualquer eleição, para fiscalizar qualquer governo, oposição ou autoridade).
+Sua missão é investigar na web com neutralidade absoluta, usando exclusivamente fontes públicas oficiais e registros documentais verificáveis.`;
 
 export function montarPromptAuditorUniversal(conteudo: string, alegacaoRecebida?: string): string {
+  const textoLimpo = conteudo.trim();
+  const palavras = textoLimpo.split(/\s+/).filter(Boolean);
+  const pareceApenasNome =
+    palavras.length >= 1 &&
+    palavras.length <= 7 &&
+    !textoLimpo.includes('http://') &&
+    !textoLimpo.includes('https://') &&
+    textoLimpo.length <= 70;
+
+  if (pareceApenasNome) {
+    return `${PROMPT_AUDITOR_PADRAO}
+
+ALVO DO RAIO-X PÚBLICO: "${textoLimpo}"
+
+Faça uma busca completa na web em fontes oficiais e públicas (TSE DivulgaCandContas, Câmara, Senado, Portal da Transparência, TCU/CGU, Tribunais/CNJ, Diários Oficiais, CNPJ/QSA e reportagens investigativas com documentos) sobre esta pessoa e responda em português simples e direto:
+
+1. [QUEM É E PASSADO POLÍTICO]: Cargos que já ocupou, todos os partidos pelos quais passou e como votou ou agiu em temas importantes.
+2. [JUSTIÇA E PROCESSOS — SEPARAÇÃO OBRIGATÓRIA]:
+   - Condenações definitivas / contas reprovadas / inelegibilidades (se houver, cite órgão e ano);
+   - Processos, inquéritos ou investigações EM ABERTO hoje (cite o tribunal/órgão e explique do que trata, deixando claro que ainda está em julgamento);
+   - Acusações já arquivadas/absolvidas ou boatos falsos (se houver).
+3. [CONTRATOS, EMENDAS E PATRIMÔNIO]: Evolução do patrimônio declarado oficialmente, uso de verbas/emendas públicas, contratos com o poder público e empresas ligadas em registros públicos.
+4. [REDE DE CONVÍVIO E ALIANÇAS]: Principais padrinhos políticos, aliados próximos, grandes financiadores oficiais, assessores-chave nomeados e conexões empresariais documentadas.
+5. [FONTES CONSULTADAS]: Liste de onde veio cada informação para conferência pública.`;
+  }
+
   const blocoAlegacao =
     alegacaoRecebida && alegacaoRecebida.trim().length > 0
       ? `\nALEGAÇÃO DE QUEM COMPARTILHOU:\n"${alegacaoRecebida.trim()}"\n`
@@ -29,17 +47,17 @@ export function montarPromptAuditorUniversal(conteudo: string, alegacaoRecebida?
 
   return `${PROMPT_AUDITOR_PADRAO}
 ${blocoAlegacao}
-CONTEÚDO / LINK / MENSAGEM PARA AUDITAR AGORA:
+CONTEÚDO / MEDIDA DO GOVERNO / NOTÍCIA / LINK PARA VERIFICAR:
 """
-${conteudo.trim()}
+${textoLimpo}
 """
 
-Responda em português do Brasil estruturando nos tópicos:
-- [VEREDITO RÁPIDO EM LINGUAGEM SIMPLES]
-- [ÍNDICE DE FIDELIDADE: 0 A 100%]
-- [O QUE É FATO COMPROVADO]
-- [O QUE ESTÁ FORA DE CONTEXTO, EXAGERADO OU SEM FONTE]
-- [COMO CONFERIR NAS FONTES PÚBLICAS OFICIAIS]`;
+Use busca na web em bases públicas oficiais (Portal da Transparência, IBGE, Tesouro Nacional, Câmara, Senado, STF, TCU, Banco Central, DataSUS) e responda em português claro e direto:
+1. [RESUMO EM 3 LINHAS SIMPLES]: É verdade, mentira, exagero ou fora de contexto?
+2. [DATA E ORIGEM REAL]: De quando é isso originalmente?
+3. [O QUE É FATO COMPROVADO COM FONTE OFICIAL]
+4. [O QUE ESTÁ DISTORCIDO, OMITIDO OU SEM PROVA]
+5. [SE FOR PESSOA CITADA]: Se houver político/autoridade central no texto, resuma também contratos, emendas ou processos públicos relevantes ligados ao tema.`;
 }
 
 export const MODELOS_INICIAIS: ModeloIaPlacar[] = [

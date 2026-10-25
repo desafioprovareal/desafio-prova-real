@@ -56,11 +56,11 @@ export function criarServidorMcp() {
       },
       {
         name: 'verificar_fatos_oficiais',
-        description: 'Consulta proposições e registros públicos nas APIs de Dados Abertos da Câmara dos Deputados e portais oficiais brasileiros.',
+        description: 'Consulta proposições, cadastro de parlamentares (Raio-X público) e portais oficiais brasileiros (TSE, Transparência, Câmara, Senado, TCU, CNJ, IBGE).',
         inputSchema: {
           type: 'object',
           properties: {
-            termoBusca: { type: 'string', description: 'Palavra-chave, tema ou número de projeto de lei' },
+            termoBusca: { type: 'string', description: 'Nome de político/parlamentar, palavra-chave, medida governamental ou número de projeto de lei' },
             ano: { type: 'number', description: 'Ano opcional da proposição' }
           },
           required: ['termoBusca']

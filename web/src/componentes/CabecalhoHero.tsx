@@ -35,7 +35,7 @@ export const CabecalhoHero: React.FC<PropriedadesCabecalhoHero> = ({
               {configuracaoLinks.nomeDesafio}
             </span>
             <span className="block text-xs text-slate-500">
-              Verificação aberta e apartidária • {configuracaoLinks.hashtagOficial}
+              Fiscalização aberta e permanente • {configuracaoLinks.hashtagOficial}
             </span>
           </div>
         </a>

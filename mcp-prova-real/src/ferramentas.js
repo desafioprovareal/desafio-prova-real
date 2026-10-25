@@ -129,10 +129,28 @@ export async function verificarFatosOficiais({ termoBusca, ano }) {
       const json = await resp.json();
       for (const item of json.dados || []) {
         fontes.push({
-          orgao: 'Câmara dos Deputados (Dados Abertos)',
+          orgao: 'Câmara dos Deputados (Dados Abertos - Proposições)',
           referencia: `${item.siglaTipo} ${item.numero}/${item.ano}`,
           ementa: item.ementa,
           urlOficial: `https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=${item.id}`
+        });
+      }
+    }
+
+    const paramsDep = new URLSearchParams({ nome: termoBusca, itens: '3', ordem: 'ASC', ordenarPor: 'nome' });
+    const urlDeputados = `https://dadosabertos.camara.leg.br/api/v2/deputados?${paramsDep.toString()}`;
+    const respDep = await fetch(urlDeputados, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (respDep.ok) {
+      const jsonDep = await respDep.json();
+      for (const dep of jsonDep.dados || []) {
+        fontes.push({
+          orgao: 'Câmara dos Deputados (Raio-X Parlamentar)',
+          referencia: `${dep.nome} (${dep.siglaPartido}-${dep.siglaUf})`,
+          ementa: `Cadastro parlamentar oficial para consulta de despesas, votações, discursos e frentes.`,
+          urlOficial: `https://www.camara.leg.br/deputados/${dep.id}`
         });
       }
     }
@@ -145,10 +163,13 @@ export async function verificarFatosOficiais({ termoBusca, ano }) {
     termoConsultado: termoBusca,
     fontesPrimariasEncontradas: fontes,
     portaisRecomendados: [
+      'https://divulgacandcontas.tse.jus.br',
+      'https://portaldatransparencia.gov.br',
       'https://dadosabertos.camara.leg.br',
       'https://legis.senado.leg.br/dadosabertos',
-      'https://censo2022.ibge.gov.br',
-      'https://portaldatransparencia.gov.br'
+      'https://portal.tcu.gov.br',
+      'https://www.cnj.jus.br',
+      'https://censo2022.ibge.gov.br'
     ]
   };
 }

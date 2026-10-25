@@ -41,8 +41,8 @@ const ABAS_DISPONIVEIS: Array<{
 }> = [
   {
     chave: 'checador',
-    rotulo: 'Verificar Notícia ou Vídeo',
-    resumoMobile: 'Verificar',
+    rotulo: 'Raio-X de Político ou Notícia',
+    resumoMobile: 'Fiscalizar',
     icone: CheckCircle2,
   },
   {
@@ -53,8 +53,8 @@ const ABAS_DISPONIVEIS: Array<{
   },
   {
     chave: 'tribunal',
-    rotulo: 'Fiscalizar Fraudes',
-    resumoMobile: 'Fiscalizar',
+    rotulo: 'Caça-Fraudes',
+    resumoMobile: 'Fraudes',
     icone: Scale,
   },
   {
