@@ -60,6 +60,45 @@ Use busca na web em bases públicas oficiais (Portal da Transparência, IBGE, Te
 5. [SE FOR PESSOA CITADA]: Se houver político/autoridade central no texto, resuma também contratos, emendas ou processos públicos relevantes ligados ao tema.`;
 }
 
+export function montarPromptCriadorConteudo(entrada: string): string {
+  const alvo =
+    entrada.trim() ||
+    '[COLE AQUI O LINK DE UMA LIVE/VÍDEO, NOTÍCIA OU O NOME DE UM POLÍTICO]';
+
+  return `Você agora opera sob o Protocolo Aberto do #DesafioProvaReal (Modo: GERADOR DE CONTEÚDO E CORTES AUDITÁVEIS PARA REDES SOCIAIS).
+
+REGRAS ÉTICAS INEGOCIÁVEIS:
+- Proibido tirar frases de contexto, cortar ressalvas ("mas", "porém"), inventar dados ou esconder a data original da fala/notícia.
+- Verifique tudo na web em fontes oficiais brasileiras (TSE, Câmara, Senado, Portal da Transparência, IBGE, TCU, STF).
+
+TEMA / VÍDEO / LIVE / POLÍTICO DE ENTRADA:
+"""
+${alvo}
+"""
+
+Entregue em português direto 3 blocos prontos para eu copiar e publicar agora:
+
+1. [POST CURTO PRONTO PARA WHATSAPP E X (ATÉ 270 CARACTERES)]:
+   Texto impactante, imparcial, cravando o fato oficial + convite: "Tire a prova real grátis: https://desafioprovareal.pages.dev #DesafioProvaReal"
+
+2. [ROTEIRO E LEGENDA PARA INSTAGRAM REELS, TIKTOK, SHORTS E FACEBOOK]:
+   - Se for vídeo/live: indique o trecho íntegro recomendado (respeitando 60s antes e 60s depois, velocidade real 1.0x) e o que colocar no topo da tela dividida;
+   - Legenda completa pronta para engajar comentários sem partidarismo.
+
+3. [FICHA DE AUDITORIA OBRIGATÓRIA (PARA FIXAR NO 1º COMENTÁRIO SEM EDITAR)]:
+🔎 FICHA DE AUDITORIA — #DesafioProvaReal
+📌 Fonte Original e Data Real: [Preencha com link e DD/MM/AAAA]
+📊 Veredito das Fontes Oficiais: [Resumo objetivo + órgãos consultados]
+🤖 IA Utilizada: [Nome do modelo] | Custo aprox.: R$ 0,00 (Plano Gratuito) ou estimativa de tokens
+📝 Prompt Usado: "Protocolo Aberto #DesafioProvaReal — https://desafioprovareal.pages.dev"
+⚠️ Comentário editado = desclassificado! Audite você mesmo em: https://desafioprovareal.pages.dev`;
+}
+
+export const TEXTO_COMPARTILHAR_DESAFIO = `Ganhe quem ganhar a eleição, ninguém vai empurrar mentira goela abaixo! 🔎
+
+Teste de graça o #DesafioProvaReal: digite SÓ O NOME de qualquer político (para ver passado, processos em aberto, contratos e alianças em fontes públicas) ou cheque qualquer vídeo do WhatsApp em segundos:
+https://desafioprovareal.pages.dev`;
+
 export const MODELOS_INICIAIS: ModeloIaPlacar[] = [
   {
     id: 'claude-sonnet',
